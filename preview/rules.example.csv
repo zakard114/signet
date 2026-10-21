@@ -1,0 +1,2 @@
+code,sentence,http_status,log_fields,retry
+unknown_card,This card is not supported. Try a different card.,400,card,retryable

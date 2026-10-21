@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: Signet
+  version: 0.1.0
+paths:
+  /authorizations:
+    post:
+      summary: Request authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, card]
+              properties:
+                amount:
+                  type: number
+                card:
+                  type: string
+      responses:
+        "200":
+          description: Approved or stopped
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sentence, http_status, log_field, retry]
+                properties:
+                  stop_step:
+                    type: integer
+                    nullable: true
+                  sentence:
+                    type: string
+                  http_status:
+                    type: integer
+                  log_field:
+                    type: string
+                  retry:
+                    type: string
+                    enum: [retryable, not_retryable]
+                  amount:
+                    type: number
+  /plates:
+    post:
+      summary: Overwrite the one decline card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, user_facing_message, http_status, log_fields, retry_allowed]
+              properties:
+                name:
+                  type: string
+                user_facing_message:
+                  type: string
+                http_status:
+                  type: integer
+                log_fields:
+                  type: string
+                retry_allowed:
+                  type: string
+                  enum: [retryable, not_retryable]
+      responses:
+        "201":
+          description: The saved card
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, user_facing_message, http_status, log_fields, retry_allowed]
+                properties:
+                  name:
+                    type: string
+                  user_facing_message:
+                    type: string
+                  http_status:
+                    type: integer
+                  log_fields:
+                    type: string
+                  retry_allowed:
+                    type: string
+                    enum: [retryable, not_retryable]
+    get:
+      summary: Read the one decline card
+      responses:
+        "200":
+          description: The saved card
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, user_facing_message, http_status, log_fields, retry_allowed]
+                properties:
+                  name:
+                    type: string
+                  user_facing_message:
+                    type: string
+                  http_status:
+                    type: integer
+                  log_fields:
+                    type: string
+                  retry_allowed:
+                    type: string
+                    enum: [retryable, not_retryable]
+        "404":
+          description: No card saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [detail]
+                properties:
+                  detail:
+                    type: string

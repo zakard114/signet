@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: signet
+      POSTGRES_PASSWORD: signet
+      POSTGRES_DB: signet
+    ports:
+      - "5433:5432"
+    volumes:
+      - E:/IT_SPACES/AI/Projects/aidt/signet/docker/pgdata:/var/lib/postgresql/data
+  app:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://signet:signet@postgres:5432/signet
+    depends_on:
+      - postgres
