@@ -24,7 +24,7 @@ Grafana는 이 PC의 Compose에만 있다. 공개 서버에는 올리지 않는�
 - Rule. 위에는 기관 규칙, 고객 문장, HTTP 상태, 로그 필드, 재시도, 금액 한도를 직접 고친다. Set rule 아래에는 `Institution rule saved.`가 뜬다. 아래 CSV는 첫 데이터 행으로 같은 규칙을 덮는다. 저장 뒤에는 이전 값과 새 값을 칸마다 대조한다.
 - Log. 승인 문장과 금액을 보여 준다. 승인은 연한 녹색, 거절은 붉은색이다. 금액이 저장되지 않은 예전 행은 금액을 비워 둔다.
 - API. 이 앱의 경로 목록과 로컬 문서를 보여 준다.
-- Grafana. 탭 안에 요청 수, HTTP 에러율, 평균 지연, 상태별 초당 요청, P95와 P99, 감사 로그가 있다. 로그의 상태 번호와 trace_id를 누르면 그 요청만 남는다. 카드 번호는 없다. 이 PC의 Grafana 전체 화면은 http://127.0.0.1:3001/d/signetpay/signet 이고, 추적 화면은 http://127.0.0.1:3001/d/signettrace/signet-trace 이다. Grafana 서버는 공개 주소로 올리지 않는다.
+- Grafana. 탭 안에 요청 수, HTTP 에러율, 평균 지연, 상태별 초당 요청, P95와 P99, 감사 로그가 있다. 로그는 시간, 상태, 메서드, 경로, 지연, trace_id 칸으로 고정폭 표다. `/favicon.ico` 같은 브라우저 정적 요청은 표에 넣지 않는다. 로그의 상태 번호와 trace_id를 누르면 그 요청만 남는다. 카드 번호는 없다. 이 PC의 Grafana 전체 화면은 http://127.0.0.1:3001/d/signetpay/signet 이고, 추적 화면은 http://127.0.0.1:3001/d/signettrace/signet-trace 이다. Grafana 서버는 공개 주소로 올리지 않는다.
 
 옵션 1의 주소가 옵션 2 탭 안의 내용과 같다.
 

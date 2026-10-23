@@ -64,8 +64,26 @@ BOARD_WINDOW_SEC = 900
 BOARD_BUCKET_SEC = 30
 
 
+_NOISE_EXACT = {
+    "/favicon.ico",
+    "/robots.txt",
+    "/apple-touch-icon.png",
+    "/apple-touch-icon-precomposed.png",
+    "/manifest.json",
+    "/browserconfig.xml",
+}
+_NOISE_SUFFIXES = (".ico", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".woff", ".woff2", ".map")
+
+
+def noise_path(path: str) -> bool:
+    clean = path.split("?", 1)[0].lower()
+    if clean in _NOISE_EXACT or clean == "/ops/board":
+        return True
+    return clean.endswith(_NOISE_SUFFIXES)
+
+
 def remember_request(method: str, path: str, status: int, duration_ms: int, trace_id: str) -> None:
-    if path == "/ops/board":
+    if noise_path(path):
         return
     row = {
         "t": time.time(),
@@ -94,7 +112,7 @@ def board_snapshot() -> dict:
     now = time.time()
     start = now - BOARD_WINDOW_SEC
     with _sample_lock:
-        rows = [row for row in _samples if row["t"] >= start]
+        rows = [row for row in _samples if row["t"] >= start and not noise_path(row["path"])]
     buckets = []
     count = BOARD_WINDOW_SEC // BOARD_BUCKET_SEC
     for index in range(count):
