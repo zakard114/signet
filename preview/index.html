@@ -52,11 +52,11 @@
       font-size: 13px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: rgba(236, 230, 216, 0.92);
       margin-bottom: 28px;
     }
-    ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-    li {
+    #rail { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    #rail li {
       display: grid;
       grid-template-columns: 28px 1fr;
       gap: 10px;
@@ -67,11 +67,11 @@
     .n { font-variant-numeric: tabular-nums; font-size: 12px; letter-spacing: 0.08em; padding-top: 3px; }
     .name { font-size: 15px; }
     .why { display: block; margin-top: 3px; font-size: 12px; color: var(--stop); }
-    li.done { color: var(--dim); }
-    li.now { color: var(--bone); }
-    li.now .n { color: var(--brass); }
-    li.stop { color: var(--bone); }
-    li.stop .n { color: var(--stop); }
+    #rail li.done { color: var(--dim); }
+    #rail li.now { color: var(--bone); }
+    #rail li.now .n { color: var(--brass); }
+    #rail li.stop { color: var(--bone); }
+    #rail li.stop .n { color: var(--stop); }
     .pay { padding: 42px 48px 36px; }
     .eyebrow { color: var(--dim); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
     h1 {
@@ -109,9 +109,15 @@
       font-size: 15px;
       cursor: pointer;
     }
+    .actions { display: flex; gap: 8px; align-items: center; }
     button.primary { background: transparent; color: var(--bone); border: 1px solid var(--line); }
     button.primary:disabled { opacity: 0.45; cursor: progress; }
-    button.ghost { background: transparent; color: var(--bone); border: 1px solid var(--line); margin-left: 8px; }
+    button.ghost { background: transparent; color: var(--bone); border: 1px solid var(--line); }
+    button.primary:hover:not(:disabled),
+    button.ghost:hover:not(:disabled) {
+      color: #fffaf2;
+      border-color: rgba(236, 230, 216, 0.72);
+    }
     .result { min-height: 280px; }
     .sentence {
       font-family: "Instrument Serif", serif;
@@ -121,14 +127,24 @@
     }
     .ok { color: var(--ok); }
     .meta { color: var(--dim); font-size: 14px; margin-bottom: 22px; }
-    .ops { grid-template-columns: 1fr; padding: 28px 32px 36px; }
+    .ops {
+      display: flex;
+      flex-direction: column;
+      grid-template-columns: 1fr;
+      width: min(980px, 100%);
+      max-height: calc(100vh - 48px);
+      padding: 28px 32px 24px;
+      overflow: hidden;
+    }
     .ops-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 22px;
+      gap: 12px 16px;
+      margin-bottom: 18px;
+      flex: 0 0 auto;
     }
+    .ops-body { overflow: auto; min-height: 0; }
     .ops .mark { margin-bottom: 0; }
     .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
     button.tab {
@@ -138,7 +154,156 @@
       padding: 8px 14px;
       font-size: 13px;
     }
-    button.tab.on { color: var(--brass); border-color: rgba(214, 177, 94, 0.45); }
+    button.tab:hover { color: var(--bone); border-color: rgba(236, 230, 216, 0.55); }
+    button.tab.on,
+    button.tab.on:hover { color: var(--brass); border-color: rgba(214, 177, 94, 0.72); }
+    .ops-body .note { color: var(--dim); line-height: 1.5; margin: 0 0 14px; }
+    .ops-body .form-msg { margin: 12px 0 0; min-height: 1.4em; }
+    .ops-body .bad { color: var(--stop); }
+    .ops-body .saved { color: var(--ok); }
+    .rule-diff {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 12px;
+    }
+    .rule-diff[hidden] { display: none !important; }
+    .rule-diff h3 {
+      margin: 0;
+      font-family: "Instrument Serif", serif;
+      font-weight: 400;
+      font-size: 28px;
+      color: var(--bone);
+    }
+    .rule-diff .diff-row {
+      display: grid;
+      grid-template-columns: minmax(108px, 140px) 1fr 1fr;
+      gap: 10px 14px;
+      align-items: start;
+    }
+    .rule-diff .diff-label {
+      color: var(--dim);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding-top: 4px;
+    }
+    .rule-diff .diff-col {
+      min-width: 0;
+      overflow-wrap: break-word;
+      font-size: 16px;
+      line-height: 1.35;
+      color: var(--bone);
+    }
+    .rule-diff .diff-col.changed { color: var(--brass); }
+    .rule-diff .diff-head {
+      color: var(--dim);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    @media (max-width: 720px) {
+      .rule-diff .diff-row { grid-template-columns: 1fr; }
+    }
+    .card-out { display: grid; gap: 14px; margin: 8px 0 22px; }
+    .card-out dt { margin: 0; color: var(--dim); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .card-out dd { margin: 4px 0 0; color: var(--bone); font-size: 22px; line-height: 1.35; overflow-wrap: break-word; }
+    .card-out dd.stop-num { color: var(--stop); }
+    .card-out dd.ok-num { color: var(--ok); }
+    .kv { display: grid; grid-template-columns: minmax(108px, 168px) minmax(0, 1fr); gap: 8px 18px; margin: 8px 0 18px; }
+    .kv dt { margin: 0; color: var(--dim); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+    .stop-num { color: var(--stop); font-variant-numeric: tabular-nums; }
+    .ok-num { color: var(--ok); font-variant-numeric: tabular-nums; }
+    .entries { display: grid; gap: 14px; }
+    .entry { border-top: 1px solid var(--line); padding-top: 12px; }
+    .entry p { margin: 0; }
+    .entry .entry-title { color: var(--bone); font-size: 22px; line-height: 1.3; margin-bottom: 6px; overflow-wrap: break-word; }
+    #api-routes { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 10px; }
+    #api-routes li { color: var(--bone); font-size: 16px; line-height: 1.4; overflow-wrap: break-word; }
+    .ops a { color: var(--brass); }
+    .query { color: var(--brass); margin: 0 0 14px; }
+    iframe.embed {
+      width: 100%;
+      height: 420px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--field);
+    }
+    iframe.graph {
+      height: min(68vh, 640px);
+      border: 0;
+      background: transparent;
+    }
+    .rule-block { margin-top: 8px; }
+    .rule-split {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+    .metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
+    .metric {
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px 12px;
+    }
+    .metric .k { color: var(--dim); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .metric .v {
+      font-family: "Instrument Serif", serif;
+      font-size: 36px;
+      line-height: 1.1;
+      margin-top: 8px;
+      color: var(--brass);
+    }
+    .metric .v.ok { color: var(--ok); }
+    .metric .v.stop { color: var(--stop); }
+    .chart-card {
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px 12px;
+      margin-bottom: 14px;
+    }
+    .chart-card h3 {
+      margin: 0 0 8px;
+      font-family: "Instrument Sans", sans-serif;
+      font-weight: 520;
+      font-size: 16px;
+      color: var(--bone);
+    }
+    .chart-card svg { width: 100%; height: 180px; display: block; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; color: var(--dim); font-size: 12px; }
+    .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 99px; margin-right: 6px; }
+    .audit { max-height: 320px; overflow: auto; display: grid; gap: 8px; }
+    .audit-line { margin: 0; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+    .audit-line.error { color: var(--stop); }
+    .audit-line.info { color: var(--ok); }
+    button.trace, button.status-link {
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+      color: var(--brass);
+    }
+    .audit-tools { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 8px; }
+    .audit-tools p { margin: 0; }
+    @media (max-width: 720px) {
+      .metric-row { grid-template-columns: 1fr; }
+    }
+    select, input[type="file"] { color: var(--bone); }
+    select {
+      width: 100%;
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font: inherit;
+      margin-bottom: 18px;
+    }
+    input[type="file"] { margin: 0 0 16px; color: var(--dim); }
     .ops-body h2 {
       font-family: "Instrument Serif", serif;
       font-weight: 400;
@@ -146,12 +311,15 @@
       margin: 8px 0 12px;
     }
     .ops-body p { color: var(--dim); line-height: 1.5; margin: 0; }
+    .ops-body .entry-title { color: var(--bone); font-size: 22px; line-height: 1.3; margin-bottom: 6px; }
+    .ops-body .entry-title.stop { color: var(--stop); }
+    .ops-body .entry-title.ok { color: var(--ok); }
     button.ops-corner {
       position: fixed;
       top: 16px;
       right: 18px;
       background: transparent;
-      color: var(--dim);
+      color: rgba(236, 230, 216, 0.82);
       border: 0;
       padding: 6px 8px;
       font: inherit;
@@ -160,6 +328,7 @@
       text-transform: uppercase;
       cursor: pointer;
     }
+    button.ops-corner:hover:not(:disabled) { color: #fffaf2; }
     button.ops-corner:disabled { visibility: hidden; }
     [hidden] { display: none !important; }
   </style>
@@ -175,11 +344,14 @@
         <div id="form">
           <div class="eyebrow">Payment</div>
           <h1 id="amount-display">128.00</h1>
-          <label for="amount">Amount USD · Limit 500.00</label>
+          <label id="limit-label" for="amount">Amount USD · Limit 500.00</label>
           <input id="amount" type="text" inputmode="decimal" value="128.00" />
           <label for="card">Card number</label>
           <input id="card" type="text" inputmode="numeric" value="4242424242424242" />
-          <button class="primary" id="go" type="button">Authorize</button>
+          <div class="actions">
+            <button class="primary" id="go" type="button">Authorize</button>
+            <button class="ghost" id="clear" type="button">AC</button>
+          </div>
         </div>
         <div id="result" class="result" hidden></div>
       </section>
@@ -189,7 +361,7 @@
         <div class="mark">Signet</div>
         <div class="tabs" id="tabs">
           <button class="tab on" type="button" data-tab="card">Card</button>
-          <button class="tab" type="button" data-tab="rules">Rule file</button>
+          <button class="tab" type="button" data-tab="rules">Rule</button>
           <button class="tab" type="button" data-tab="log">Log</button>
           <button class="tab" type="button" data-tab="api">API</button>
           <button class="tab" type="button" data-tab="grafana">Grafana</button>
@@ -200,26 +372,109 @@
         <div data-panel="card">
           <div class="eyebrow">Card</div>
           <h2>One decline card</h2>
-          <p>Edit the customer sentence, HTTP status, log field, and retry flag from Fault Plate. The next save overwrites that one card.</p>
+          <p class="note" id="card-status">Reading the saved card.</p>
+          <dl class="card-out" id="card-view"></dl>
+          <form id="card-form">
+            <label for="plate-name">Name</label>
+            <input id="plate-name" type="text" autocomplete="off" />
+            <label for="plate-message">Customer sentence</label>
+            <input id="plate-message" type="text" autocomplete="off" />
+            <label for="plate-status">HTTP status</label>
+            <input id="plate-status" type="text" inputmode="numeric" autocomplete="off" />
+            <label for="plate-field">Log field</label>
+            <input id="plate-field" type="text" autocomplete="off" />
+            <label for="plate-retry">Retry</label>
+            <select id="plate-retry">
+              <option value="not_retryable">not_retryable</option>
+              <option value="retryable">retryable</option>
+            </select>
+            <button class="primary" type="submit">Save card</button>
+            <p class="note form-msg" id="card-save"></p>
+          </form>
         </div>
         <div data-panel="rules" hidden>
-          <div class="eyebrow">Rule file</div>
-          <h2>Other declines</h2>
-          <p>One CSV row is one decline reason: code, customer sentence, HTTP status, log field, and retry flag.</p>
+          <div class="eyebrow">Rule</div>
+          <h2>Institution rule</h2>
+          <p id="rule-status" class="note">Reading the institution rule.</p>
+          <form id="rule-direct" class="rule-block">
+            <label for="rule-code">Institution rule</label>
+            <input id="rule-code" type="text" autocomplete="off" />
+            <label for="rule-sentence">Customer sentence</label>
+            <input id="rule-sentence" type="text" autocomplete="off" />
+            <label for="rule-http">HTTP status</label>
+            <input id="rule-http" type="text" inputmode="numeric" value="400" autocomplete="off" />
+            <label for="rule-log-field">Log field</label>
+            <input id="rule-log-field" type="text" value="card" autocomplete="off" />
+            <label for="rule-retry">Retry</label>
+            <select id="rule-retry">
+              <option value="retryable">retryable</option>
+              <option value="not_retryable">not_retryable</option>
+            </select>
+            <label for="rule-limit">Amount limit USD</label>
+            <input id="rule-limit" type="text" inputmode="decimal" value="500.00" autocomplete="off" />
+            <button class="primary" type="submit">Set rule</button>
+            <p class="note form-msg" id="rule-direct-save"></p>
+          </form>
+          <div class="rule-diff" id="rule-diff" hidden>
+            <h3>What changed</h3>
+            <p class="note" id="rule-diff-note"></p>
+            <div class="diff-row">
+              <span class="diff-label"></span>
+              <span class="diff-head" id="rule-diff-before-head">Before</span>
+              <span class="diff-head">After</span>
+            </div>
+            <div id="rule-diff-rows"></div>
+          </div>
+          <div class="rule-split">
+            <div class="eyebrow">CSV import</div>
+            <p class="note">The first CSV data row sets the rule for other cards. The amount_limit column sets the payment ceiling. Without that column the ceiling stays 500.00 USD. A file whose text contains 13 or more consecutive digits is refused and is not stored.</p>
+            <form id="rule-form">
+              <input id="rule-file" type="file" accept=".csv,.txt,text/csv,text/plain" />
+              <button class="primary" type="submit">Upload CSV</button>
+              <p class="note form-msg" id="rule-save"></p>
+            </form>
+          </div>
         </div>
         <div data-panel="log" hidden>
           <div class="eyebrow">Log</div>
-          <h2>Attempt log</h2>
-          <p>See which step stopped, which rule opened, and the trace id.</p>
+          <h2>Authorization log</h2>
+          <p class="note" id="log-status"></p>
+          <div id="log-rows" class="entries"></div>
         </div>
         <div data-panel="api" hidden>
           <div class="eyebrow">API</div>
-          <h2>Contract</h2>
-          <p>Authorization is POST. The Fault Plate card is GET /plates. The contract is openapi.yaml.</p>
+          <h2>Local API</h2>
+          <p class="note">Live routes on this app. <a id="api-docs" href="/docs">Open local docs</a></p>
+          <ul id="api-routes"></ul>
+          <iframe class="embed" id="api-frame" title="Local API docs"></iframe>
         </div>
         <div data-panel="grafana" hidden>
           <div class="eyebrow">Grafana</div>
-          <h2>The local Compose screen opens later.</h2>
+          <h2>Payment control</h2>
+          <p class="note" id="grafana-status">Requests per second by HTTP status, P95 and P99 latency, and the audit stream. Each line carries the trace id sent to Loki. Green is success. Red is an HTTP decline.</p>
+          <div class="metric-row">
+            <div class="metric"><div class="k">Requests</div><div class="v" id="stat-requests">0</div></div>
+            <div class="metric"><div class="k">HTTP error rate</div><div class="v stop" id="stat-errors">0%</div></div>
+            <div class="metric"><div class="k">Average latency</div><div class="v ok" id="stat-latency">0 ms</div></div>
+          </div>
+          <div class="chart-card">
+            <h3>Request rate by status</h3>
+            <svg id="chart-rate" viewBox="0 0 640 180" role="img" aria-label="Requests per second by HTTP status"></svg>
+            <div class="legend" id="rate-legend"></div>
+          </div>
+          <div class="chart-card">
+            <h3>Latency P95 and P99</h3>
+            <svg id="chart-latency" viewBox="0 0 640 180" role="img" aria-label="P95 and P99 latency in milliseconds"></svg>
+            <div class="legend" id="latency-legend"></div>
+          </div>
+          <div class="chart-card">
+            <h3>Audit log</h3>
+            <div class="audit-tools">
+              <p class="note" id="audit-filter">All requests in the last 15 minutes.</p>
+              <button class="ghost" id="audit-clear" type="button" hidden>Show all</button>
+            </div>
+            <div class="audit" id="audit-log"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -228,6 +483,7 @@
   <script>
     const STEPS = ["Intake", "Amount check", "Card check", "Authorization request", "Authorization decision", "Next action"];
     const LIMIT = 500;
+    let limit = LIMIT;
     const rail = document.getElementById("rail");
     const form = document.getElementById("form");
     const result = document.getElementById("result");
@@ -251,12 +507,19 @@
       }).join("");
     }
 
+    function money(value) {
+      if (value == null || value === "") return "";
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) return "";
+      return `${amount.toFixed(2)} USD`;
+    }
+
     function digits(value) { return value.replace(/\D/g, ""); }
 
     function decide() {
       const amount = Number(amountInput.value);
       const pan = digits(cardInput.value);
-      if (!Number.isFinite(amount) || amount <= 0 || amount > LIMIT) {
+      if (!Number.isFinite(amount) || amount <= 0 || amount > limit) {
         return { stop: 2, why: "Amount exceeds limit", title: "This amount is above the limit.", meta: "HTTP 400 · amount · Retryable", retry: "Edit amount" };
       }
       if (pan.length < 13 || pan.length > 19) {
@@ -271,14 +534,524 @@
       return { stop: 5, why: "No rule for this card", title: "There is no decline rule for this card.", meta: "No Ops rule for this card.", retry: "" };
     }
 
+    function hasPan(text) {
+      let run = 0;
+      const value = String(text || "");
+      for (const ch of value) {
+        if (ch >= "0" && ch <= "9") {
+          run += 1;
+          if (run >= 13) return true;
+        } else {
+          run = 0;
+        }
+      }
+      return false;
+    }
+
+    function statusClass(code) {
+      const n = Number(code);
+      if (n >= 400) return "stop-num";
+      if (n >= 200 && n < 300) return "ok-num";
+      return "";
+    }
+
+    function fillPairs(list, pairs) {
+      list.replaceChildren();
+      pairs.forEach(([label, value, tone]) => {
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const detail = document.createElement("dd");
+        detail.textContent = value == null ? "" : String(value);
+        if (tone) detail.className = tone;
+        list.appendChild(term);
+        list.appendChild(detail);
+      });
+    }
+
+    function outcomeFromBody(body) {
+      const stop = body.stop_step || 0;
+      let why = "";
+      if (stop === 2) why = "Amount exceeds limit";
+      else if (stop === 3) why = "Invalid card number";
+      else if (stop === 5) why = "Payment authorization failed";
+      const retryLabel = body.retry === "retryable"
+        ? (body.log_field === "amount" ? "Edit amount" : "Edit card")
+        : "";
+      const amountText = money(body.amount);
+      const decision = stop
+        ? `HTTP ${body.http_status} · ${body.log_field} · ${body.retry === "retryable" ? "Retryable" : "Not retryable"}`
+        : "";
+      const meta = [amountText, decision].filter(Boolean).join(" · ");
+      return { stop, why, title: body.sentence, meta, retry: retryLabel };
+    }
+
+    async function loadCard() {
+      const status = document.getElementById("card-status");
+      const view = document.getElementById("card-view");
+      status.className = "note";
+      status.textContent = "Reading the saved card.";
+      let failed = null;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch("/plates");
+          if (response.status === 404) {
+            status.className = "note";
+            status.textContent = "No decline card is saved.";
+            view.replaceChildren();
+            return;
+          }
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const plate = await response.json();
+          status.className = "note";
+          status.textContent = "Saved decline card. The next save overwrites this one card.";
+          fillPairs(view, [
+            ["Name", plate.name],
+            ["Customer sentence", plate.user_facing_message],
+            ["HTTP status", plate.http_status, statusClass(plate.http_status)],
+            ["Log field", plate.log_fields],
+            ["Retry", plate.retry_allowed],
+          ]);
+          document.getElementById("plate-name").value = plate.name || "";
+          document.getElementById("plate-message").value = plate.user_facing_message || "";
+          document.getElementById("plate-status").value = plate.http_status == null ? "" : String(plate.http_status);
+          document.getElementById("plate-field").value = plate.log_fields || "";
+          document.getElementById("plate-retry").value = plate.retry_allowed || "not_retryable";
+          return;
+        } catch (err) {
+          failed = err;
+          await new Promise((r) => setTimeout(r, 400));
+        }
+      }
+      status.textContent = "The decline card could not be read.";
+      status.className = "bad";
+    }
+
+    let ruleLoad = 0;
+    let currentRule = null;
+    const NO_RULE = {
+      filename: "(none)",
+      code: "—",
+      sentence: "There is no decline rule for this card.",
+      http_status: 400,
+      log_field: "card",
+      retry: "not_retryable",
+      amount_limit: LIMIT,
+    };
+
+    function limitText(value) {
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) return `${LIMIT.toFixed(2)} USD`;
+      return `${amount.toFixed(2)} USD`;
+    }
+
+    function fillRuleForm(rule) {
+      document.getElementById("rule-code").value = rule && rule.code ? rule.code : "";
+      document.getElementById("rule-sentence").value = rule && rule.sentence ? rule.sentence : "";
+      document.getElementById("rule-http").value = rule && rule.http_status ? String(rule.http_status) : "400";
+      document.getElementById("rule-log-field").value = rule && rule.log_field ? rule.log_field : "card";
+      const retry = rule && (rule.retry === "retryable" || rule.retry === "not_retryable") ? rule.retry : "not_retryable";
+      document.getElementById("rule-retry").value = retry;
+      const amount = rule && rule.amount_limit != null ? Number(rule.amount_limit) : LIMIT;
+      document.getElementById("rule-limit").value = Number.isFinite(amount) ? amount.toFixed(2) : LIMIT.toFixed(2);
+    }
+
+    function csvCell(value) {
+      const text = String(value ?? "");
+      if (/[",\n]/.test(text)) return `"${text.replaceAll('"', '""')}"`;
+      return text;
+    }
+
+    async function postRule(filename, text) {
+      return fetch("/rules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename, text }),
+      });
+    }
+
+    function applyLimit(value) {
+      const amount = Number(value);
+      limit = Number.isFinite(amount) && amount > 0 ? amount : LIMIT;
+      document.getElementById("limit-label").textContent = `Amount USD · Limit ${limit.toFixed(2)}`;
+    }
+
+    function ruleSnapshot(rule) {
+      if (!rule) return { ...NO_RULE, amount_limit: limitText(LIMIT) };
+      return {
+        filename: rule.filename || "(none)",
+        code: rule.code || "",
+        sentence: rule.sentence || "",
+        http_status: rule.http_status,
+        log_field: rule.log_field || "",
+        retry: rule.retry || "",
+        amount_limit: limitText(rule.amount_limit == null ? LIMIT : rule.amount_limit),
+      };
+    }
+
+    function showRuleDiff(before, after, hadRule) {
+      const box = document.getElementById("rule-diff");
+      const note = document.getElementById("rule-diff-note");
+      const rows = document.getElementById("rule-diff-rows");
+      const beforeHead = document.getElementById("rule-diff-before-head");
+      const left = ruleSnapshot(before);
+      const right = ruleSnapshot(after);
+      beforeHead.textContent = hadRule ? "Before" : "Before (no rule)";
+      const fields = [
+        ["File", "filename"],
+        ["Code", "code"],
+        ["Customer sentence", "sentence"],
+        ["HTTP status", "http_status"],
+        ["Log field", "log_field"],
+        ["Retry", "retry"],
+        ["Amount limit", "amount_limit"],
+      ];
+      let changed = 0;
+      rows.replaceChildren();
+      fields.forEach(([label, key]) => {
+        const oldValue = left[key] == null ? "" : String(left[key]);
+        const newValue = right[key] == null ? "" : String(right[key]);
+        const isChanged = oldValue !== newValue;
+        if (isChanged) changed += 1;
+        const row = document.createElement("div");
+        row.className = "diff-row";
+        const term = document.createElement("span");
+        term.className = "diff-label";
+        term.textContent = label;
+        const prev = document.createElement("span");
+        prev.className = "diff-col" + (isChanged ? " changed" : "");
+        prev.textContent = oldValue;
+        const next = document.createElement("span");
+        next.className = "diff-col" + (isChanged ? " changed" : "");
+        next.textContent = newValue;
+        row.append(term, prev, next);
+        rows.appendChild(row);
+      });
+      note.textContent = changed
+        ? `${changed} field${changed === 1 ? "" : "s"} changed. Unchanged fields stay the same color.`
+        : "No fields changed. The attached file matched the saved rule.";
+      box.hidden = false;
+    }
+
+    async function loadRule() {
+      const ticket = ++ruleLoad;
+      const status = document.getElementById("rule-status");
+      status.className = "note";
+      status.textContent = "Reading the institution rule.";
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch("/rules");
+          if (ticket !== ruleLoad) return;
+          if (response.status === 404) {
+            status.className = "note";
+            status.textContent = "No institution rule is saved.";
+            currentRule = null;
+            fillRuleForm(null);
+            applyLimit(LIMIT);
+            return;
+          }
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const rule = await response.json();
+          if (ticket !== ruleLoad) return;
+          currentRule = rule;
+          status.className = "note";
+          status.textContent = "Institution rule saved.";
+          fillRuleForm(rule);
+          applyLimit(rule.amount_limit);
+          return;
+        } catch (err) {
+          if (ticket !== ruleLoad) return;
+          await new Promise((r) => setTimeout(r, 400));
+        }
+      }
+      if (ticket !== ruleLoad) return;
+      status.textContent = "The institution rule could not be read.";
+      status.className = "bad";
+    }
+
+    async function loadLog() {
+      const status = document.getElementById("log-status");
+      const body = document.getElementById("log-rows");
+      status.className = "note";
+      status.textContent = "Reading the authorization log.";
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch("/logs");
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const rows = await response.json();
+          body.replaceChildren();
+          if (!rows.length) {
+            status.className = "note";
+            status.textContent = "No authorization rows yet.";
+            return;
+          }
+          status.className = "note";
+          status.textContent = rows.length === 1 ? "1 payment" : `${rows.length} payments`;
+          rows.forEach((row) => {
+            const item = document.createElement("article");
+            item.className = "entry";
+            const code = Number(row.http_status);
+            const tone = statusClass(code);
+            const title = document.createElement("p");
+            title.className = tone === "stop-num" ? "entry-title stop" : tone === "ok-num" ? "entry-title ok" : "entry-title";
+            title.textContent = row.sentence || "";
+            const meta = document.createElement("p");
+            meta.className = "note";
+            const amountText = money(row.amount);
+            if (amountText) meta.append(document.createTextNode(amountText + " · "));
+            const http = document.createElement("span");
+            http.className = tone;
+            http.textContent = "HTTP " + row.http_status;
+            meta.append(http, document.createTextNode(" · " + (row.retry === "retryable" ? "Retryable" : "Not retryable")));
+            item.append(title, meta);
+            body.appendChild(item);
+          });
+          return;
+        } catch (err) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
+      }
+      status.textContent = "The authorization log could not be read.";
+      status.className = "bad";
+    }
+
+    async function loadApi() {
+      const list = document.getElementById("api-routes");
+      const frame = document.getElementById("api-frame");
+      if (!frame.getAttribute("src")) frame.setAttribute("src", "/docs");
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch("/openapi.json");
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const doc = await response.json();
+          list.replaceChildren();
+          const paths = doc.paths || {};
+          Object.keys(paths).forEach((path) => {
+            Object.keys(paths[path]).forEach((method) => {
+              if (method === "parameters" || method.startsWith("x-")) return;
+              const summary = (paths[path][method] && paths[path][method].summary) || "";
+              const line = `${method.toUpperCase()} ${path}${summary ? " — " + summary : ""}`;
+              if (hasPan(line)) return;
+              const item = document.createElement("li");
+              item.textContent = line;
+              list.appendChild(item);
+            });
+          });
+          if (!list.childElementCount) {
+            const item = document.createElement("li");
+            item.textContent = "The local API document could not be read.";
+            list.appendChild(item);
+          }
+          return;
+        } catch (err) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
+      }
+      list.replaceChildren();
+      const item = document.createElement("li");
+      item.textContent = "The local API document could not be read.";
+      list.appendChild(item);
+    }
+
+    let boardTimer = null;
+    let auditRows = [];
+    let auditTrace = "";
+    let auditStatus = "";
+
+    function stopBoard() {
+      if (boardTimer) {
+        clearInterval(boardTimer);
+        boardTimer = null;
+      }
+    }
+
+    function statusColor(status) {
+      const code = Number(status);
+      if (code >= 200 && code < 300) return "#cfe0bc";
+      if (code >= 400) return "#e07a5f";
+      return "#d6b15e";
+    }
+
+    function drawSeries(svg, series, yMax) {
+      const width = 640;
+      const height = 180;
+      const padL = 36;
+      const padB = 22;
+      const padT = 8;
+      const padR = 8;
+      const innerW = width - padL - padR;
+      const innerH = height - padT - padB;
+      const ceiling = yMax > 0 ? yMax : 1;
+      const parts = [];
+      for (let tick = 0; tick <= 3; tick += 1) {
+        const y = padT + innerH - (innerH * tick) / 3;
+        const label = (ceiling * tick) / 3;
+        const text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(2);
+        parts.push(`<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="rgba(236,230,216,0.12)" />`);
+        parts.push(`<text x="${padL - 6}" y="${y + 4}" fill="rgba(236,230,216,0.42)" font-size="11" text-anchor="end">${text}</text>`);
+      }
+      series.forEach((seriesItem) => {
+        const values = seriesItem.values;
+        if (!values.length) return;
+        const points = values.map((value, index) => {
+          const x = padL + (values.length === 1 ? innerW / 2 : (innerW * index) / (values.length - 1));
+          const y = padT + innerH - (innerH * Math.min(value, ceiling)) / ceiling;
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        });
+        parts.push(`<polyline fill="none" stroke="${seriesItem.color}" stroke-width="2" points="${points.join(" ")}" />`);
+      });
+      svg.innerHTML = parts.join("");
+    }
+
+    function renderLegend(id, items) {
+      const box = document.getElementById(id);
+      box.replaceChildren();
+      items.forEach((item) => {
+        const span = document.createElement("span");
+        const swatch = document.createElement("span");
+        swatch.className = "swatch";
+        swatch.style.background = item.color;
+        span.append(swatch, document.createTextNode(item.label));
+        box.appendChild(span);
+      });
+    }
+
+    function renderAudit() {
+      const box = document.getElementById("audit-log");
+      const note = document.getElementById("audit-filter");
+      const clear = document.getElementById("audit-clear");
+      const rows = auditRows.filter((row) => {
+        if (auditTrace && row.trace_id !== auditTrace) return false;
+        if (auditStatus && String(row.status) !== auditStatus) return false;
+        return true;
+      });
+      clear.hidden = !auditTrace && !auditStatus;
+      if (auditTrace) note.textContent = `Trace ${auditTrace} · ${rows.length} line${rows.length === 1 ? "" : "s"}.`;
+      else if (auditStatus) note.textContent = `HTTP ${auditStatus} · ${rows.length} line${rows.length === 1 ? "" : "s"}.`;
+      else note.textContent = rows.length ? `${rows.length} lines in the last 15 minutes.` : "No requests in the last 15 minutes.";
+      box.replaceChildren();
+      rows.forEach((row) => {
+        const line = document.createElement("p");
+        line.className = row.status >= 400 ? "audit-line error" : "audit-line info";
+        line.append(document.createTextNode(`${row.timestamp} `));
+        const status = document.createElement("button");
+        status.type = "button";
+        status.className = "status-link";
+        status.textContent = `[${row.status}]`;
+        status.onclick = () => {
+          auditStatus = auditStatus === String(row.status) ? "" : String(row.status);
+          auditTrace = "";
+          renderAudit();
+        };
+        const trace = document.createElement("button");
+        trace.type = "button";
+        trace.className = "trace";
+        trace.textContent = row.trace_id;
+        trace.onclick = () => {
+          auditTrace = auditTrace === row.trace_id ? "" : row.trace_id;
+          auditStatus = "";
+          renderAudit();
+        };
+        line.append(status, document.createTextNode(` ${row.method} ${row.path} ${row.duration_ms}ms trace=`), trace);
+        box.appendChild(line);
+      });
+    }
+
+    async function paintBoard() {
+      const response = await fetch("/ops/board");
+      if (!response.ok) {
+        document.getElementById("grafana-status").textContent = "The request board could not be read.";
+        return;
+      }
+      const board = await response.json();
+      const stats = board.stats || {};
+      document.getElementById("stat-requests").textContent = String(stats.requests || 0);
+      const rate = Number(stats.error_rate || 0);
+      document.getElementById("stat-errors").textContent = `${(rate * 100).toFixed(1)}%`;
+      document.getElementById("stat-latency").textContent = stats.avg_ms == null ? "0 ms" : `${stats.avg_ms} ms`;
+      const buckets = board.buckets || [];
+      const statuses = [];
+      buckets.forEach((bucket) => {
+        Object.keys(bucket.rates || {}).forEach((status) => {
+          if (!statuses.includes(status)) statuses.push(status);
+        });
+      });
+      statuses.sort();
+      const rateSeries = statuses.map((status) => ({
+        color: statusColor(status),
+        label: status,
+        values: buckets.map((bucket) => Number((bucket.rates || {})[status] || 0)),
+      }));
+      const rateMax = rateSeries.reduce((max, series) => Math.max(max, ...series.values, 0), 0);
+      drawSeries(document.getElementById("chart-rate"), rateSeries, rateMax);
+      renderLegend("rate-legend", rateSeries.map((series) => ({ color: series.color, label: series.label })));
+      const p95 = buckets.map((bucket) => Number(bucket.p95 || 0));
+      const p99 = buckets.map((bucket) => Number(bucket.p99 || 0));
+      drawSeries(document.getElementById("chart-latency"), [
+        { color: "#d6b15e", values: p95 },
+        { color: "#e07a5f", values: p99 },
+      ], Math.max(...p95, ...p99, 0));
+      renderLegend("latency-legend", [
+        { color: "#d6b15e", label: "P95" },
+        { color: "#e07a5f", label: "P99" },
+      ]);
+      auditRows = board.logs || [];
+      renderAudit();
+    }
+
+    function loadGrafana() {
+      paintBoard().catch(() => {
+        document.getElementById("grafana-status").textContent = "The request board could not be read.";
+      });
+      stopBoard();
+      boardTimer = setInterval(() => {
+        const panel = document.querySelector('[data-panel="grafana"]');
+        if (!panel || panel.hidden) {
+          stopBoard();
+          return;
+        }
+        paintBoard().catch(() => {});
+      }, 4000);
+    }
+
+    function loadPanel(name) {
+      if (name === "card") loadCard();
+      if (name === "rules") loadRule();
+      if (name === "log") loadLog();
+      if (name === "api") loadApi();
+      if (name === "grafana") loadGrafana();
+    }
+
     function showResult(outcome) {
       form.hidden = true;
       result.hidden = false;
-      const again = outcome.retry ? `<button class="ghost" id="back" type="button">${outcome.retry}</button>` : "";
-      const tone = outcome.stop ? "" : " ok";
-      result.innerHTML = `<div class="eyebrow">${outcome.stop ? "Declined" : "Completed"}</div><p class="sentence${tone}">${outcome.title}</p><p class="meta">${outcome.meta}</p>${again}`;
-      const back = document.getElementById("back");
-      if (back) back.onclick = reset;
+      result.replaceChildren();
+      const eyebrow = document.createElement("div");
+      eyebrow.className = "eyebrow";
+      eyebrow.textContent = outcome.stop ? "Declined" : "Completed";
+      const sentence = document.createElement("p");
+      sentence.className = outcome.stop ? "sentence" : "sentence ok";
+      sentence.textContent = outcome.title || "";
+      const meta = document.createElement("p");
+      meta.className = "meta";
+      meta.textContent = outcome.meta || "";
+      result.append(eyebrow, sentence, meta);
+      if (outcome.retry) {
+        const back = document.createElement("button");
+        back.className = "ghost";
+        back.type = "button";
+        back.id = "back";
+        back.textContent = outcome.retry;
+        back.onclick = reset;
+        result.appendChild(back);
+      } else {
+        const back = document.createElement("button");
+        back.className = "ghost";
+        back.type = "button";
+        back.id = "return";
+        back.textContent = "Return";
+        back.onclick = reset;
+        result.appendChild(back);
+      }
       openOps.disabled = false;
     }
 
@@ -294,12 +1067,22 @@
     async function run() {
       go.disabled = true;
       openOps.disabled = true;
-      const outcome = decide();
-      const last = outcome.stop || 6;
+      const local = decide();
+      const pending = fetch("/authorizations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: Number(amountInput.value), card: digits(cardInput.value) }),
+      }).then(async (response) => {
+        if (!response.ok) return null;
+        return response.json();
+      }).catch(() => null);
+      const last = local.stop || 6;
       for (let step = 1; step <= last; step += 1) {
         paint(step, 0, "");
         await new Promise((r) => setTimeout(r, 420));
       }
+      const body = await pending;
+      const outcome = body ? outcomeFromBody(body) : local;
       if (outcome.stop) paint(outcome.stop, outcome.stop, outcome.why);
       else paint(7, 0, "");
       showResult(outcome);
@@ -309,9 +1092,12 @@
       checkout.hidden = true;
       ops.hidden = false;
       openOps.hidden = true;
+      const current = document.querySelector("button.tab.on");
+      loadPanel(current ? current.dataset.tab : "card");
     }
 
     function showCheckout() {
+      stopBoard();
       ops.hidden = true;
       checkout.hidden = false;
       openOps.hidden = false;
@@ -324,16 +1110,165 @@
       document.querySelectorAll("[data-panel]").forEach((panel) => {
         panel.hidden = panel.dataset.panel !== button.dataset.tab;
       });
+      loadPanel(button.dataset.tab);
     });
+
+    document.getElementById("card-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const saved = document.getElementById("card-save");
+      const payload = {
+        name: document.getElementById("plate-name").value,
+        user_facing_message: document.getElementById("plate-message").value,
+        http_status: Number(document.getElementById("plate-status").value),
+        log_fields: document.getElementById("plate-field").value,
+        retry_allowed: document.getElementById("plate-retry").value,
+      };
+      const joined = [payload.name, payload.user_facing_message, payload.log_fields, String(payload.http_status)].join(" ");
+      if (hasPan(joined)) {
+        saved.textContent = "This card was refused. It contains 13 or more consecutive digits.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      const response = await fetch("/plates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        saved.textContent = "This card was refused.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      await loadCard();
+      saved.textContent = "Saved. The next decline uses this card.";
+      saved.className = "form-msg saved";
+    });
+
+    document.getElementById("audit-clear").onclick = () => {
+      auditTrace = "";
+      auditStatus = "";
+      renderAudit();
+    };
+
+    document.getElementById("rule-direct").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const saved = document.getElementById("rule-direct-save");
+      const code = document.getElementById("rule-code").value.trim();
+      const sentence = document.getElementById("rule-sentence").value.trim();
+      const httpStatus = document.getElementById("rule-http").value.trim() || "400";
+      const logField = document.getElementById("rule-log-field").value.trim() || "card";
+      const retry = document.getElementById("rule-retry").value;
+      const amount = document.getElementById("rule-limit").value.trim() || String(LIMIT);
+      const joined = [code, sentence, httpStatus, logField, amount].join(" ");
+      if (!code || !sentence) {
+        saved.textContent = "Institution rule and customer sentence are required.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      const statusCode = Number(httpStatus);
+      const limitValue = Number(amount);
+      if (!Number.isInteger(statusCode) || statusCode < 100 || statusCode > 599) {
+        saved.textContent = "HTTP status must be from 100 to 599.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      if (!Number.isFinite(limitValue) || limitValue <= 0 || limitValue > 100000) {
+        saved.textContent = "Amount limit must be greater than 0 and at most 100000.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      if (hasPan(joined)) {
+        saved.textContent = "This rule was refused. It contains 13 or more consecutive digits.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      const text = [
+        "code,sentence,http_status,log_field,retry,amount_limit",
+        [code, sentence, statusCode, logField, retry, limitValue.toFixed(2)].map(csvCell).join(","),
+      ].join("\n");
+      const before = currentRule;
+      const hadRule = !!currentRule;
+      const response = await postRule("direct-form.csv", text);
+      if (!response.ok) {
+        saved.textContent = "This rule was refused.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      const after = await response.json();
+      await loadRule();
+      showRuleDiff(before, after, hadRule);
+      applyLimit(after.amount_limit);
+      saved.textContent = "Institution rule saved.";
+      saved.className = "form-msg saved";
+    });
+
+    document.getElementById("rule-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const saved = document.getElementById("rule-save");
+      const input = document.getElementById("rule-file");
+      const diff = document.getElementById("rule-diff");
+      const file = input.files && input.files[0];
+      if (!file) {
+        saved.textContent = "Choose a file first.";
+        saved.className = "form-msg note";
+        return;
+      }
+      const text = await file.text();
+      if (hasPan(file.name) || hasPan(text)) {
+        ruleLoad += 1;
+        input.value = "";
+        diff.hidden = true;
+        saved.textContent = "This file was refused. It contains 13 or more consecutive digits.";
+        saved.className = "form-msg bad";
+        return;
+      }
+      const before = currentRule;
+      const hadRule = !!currentRule;
+      const response = await postRule(file.name, text);
+      if (!response.ok) {
+        ruleLoad += 1;
+        input.value = "";
+        diff.hidden = true;
+        let message = "This file was refused.";
+        try {
+          const data = await response.json();
+          if (data.detail === "rejected: 13 or more consecutive digits") {
+            message = "This file was refused. It contains 13 or more consecutive digits.";
+          } else if (data.detail === "empty file" || data.detail === "rule file has no sentence") {
+            message = "This file was refused. It has no institution sentence.";
+          }
+        } catch (err) {
+          message = "This file was refused.";
+        }
+        saved.textContent = message;
+        saved.className = "form-msg bad";
+        return;
+      }
+      const after = await response.json();
+      input.value = "";
+      await loadRule();
+      showRuleDiff(before, after, hadRule);
+      applyLimit(after.amount_limit);
+      saved.textContent = "Saved. Other cards now use this rule.";
+      saved.className = "form-msg saved";
+    });
+
+    function clearEntry() {
+      amountInput.value = "";
+      cardInput.value = "";
+      display.textContent = "0.00";
+    }
 
     amountInput.addEventListener("input", () => {
       const n = Number(amountInput.value);
       display.textContent = Number.isFinite(n) ? n.toFixed(2) : amountInput.value;
     });
     go.onclick = run;
+    document.getElementById("clear").onclick = clearEntry;
     openOps.onclick = showOps;
     document.getElementById("close-ops").onclick = showCheckout;
     paint(1, 0, "");
+    loadRule();
   </script>
 </body>
 </html>

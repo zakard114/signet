@@ -3,3 +3,5 @@ uvicorn
 psycopg[binary]
 pytest
 httpx
+opentelemetry-sdk
+opentelemetry-exporter-otlp-proto-http

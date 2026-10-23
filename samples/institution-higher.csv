@@ -1,0 +1,2 @@
+code,sentence,http_status,log_field,retry,amount_limit
+raised_limit,This institution accepts a higher amount. Try the payment again.,403,amount,not_retryable,800

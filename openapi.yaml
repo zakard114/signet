@@ -115,3 +115,187 @@ paths:
                 properties:
                   detail:
                     type: string
+  /logs:
+    get:
+      summary: Read authorization log rows
+      responses:
+        "200":
+          description: Rows from authorization_log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id, sentence, http_status, log_field, retry, created_at]
+                  properties:
+                    id:
+                      type: integer
+                    stop_step:
+                      type: integer
+                      nullable: true
+                    sentence:
+                      type: string
+                    http_status:
+                      type: integer
+                    log_field:
+                      type: string
+                    retry:
+                      type: string
+                    amount:
+                      type: number
+                      nullable: true
+                    created_at:
+                      type: string
+                      format: date-time
+  /ops/board:
+    get:
+      summary: Read the live request board
+      responses:
+        "200":
+          description: Request rate, latency, and the audit stream for the last 15 minutes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [window_sec, bucket_sec, stats, buckets, logs]
+                properties:
+                  window_sec:
+                    type: integer
+                  bucket_sec:
+                    type: integer
+                  stats:
+                    type: object
+                    required: [requests, error_rate]
+                    properties:
+                      requests:
+                        type: integer
+                      error_rate:
+                        type: number
+                      avg_ms:
+                        type: number
+                        nullable: true
+                  buckets:
+                    type: array
+                    items:
+                      type: object
+                      required: [t, rates]
+                      properties:
+                        t:
+                          type: integer
+                        rates:
+                          type: object
+                          additionalProperties:
+                            type: number
+                        p95:
+                          type: number
+                          nullable: true
+                        p99:
+                          type: number
+                          nullable: true
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      required: [timestamp, method, path, status, duration_ms, trace_id, level]
+                      properties:
+                        timestamp:
+                          type: string
+                        method:
+                          type: string
+                        path:
+                          type: string
+                        status:
+                          type: integer
+                        duration_ms:
+                          type: integer
+                        trace_id:
+                          type: string
+                        level:
+                          type: string
+                          enum: [info, error]
+  /rules:
+    get:
+      summary: Read the institution rule
+      responses:
+        "200":
+          description: The saved institution rule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [filename, code, sentence, http_status, log_field, retry, amount_limit]
+                properties:
+                  filename:
+                    type: string
+                  code:
+                    type: string
+                  sentence:
+                    type: string
+                  http_status:
+                    type: integer
+                  log_field:
+                    type: string
+                  retry:
+                    type: string
+                    enum: [retryable, not_retryable]
+                  amount_limit:
+                    type: number
+        "404":
+          description: No institution rule saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [detail]
+                properties:
+                  detail:
+                    type: string
+    post:
+      summary: Set the institution rule from a text file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, text]
+              properties:
+                filename:
+                  type: string
+                text:
+                  type: string
+      responses:
+        "201":
+          description: The saved institution rule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [filename, code, sentence, http_status, log_field, retry, amount_limit]
+                properties:
+                  filename:
+                    type: string
+                  code:
+                    type: string
+                  sentence:
+                    type: string
+                  http_status:
+                    type: integer
+                  log_field:
+                    type: string
+                  retry:
+                    type: string
+                    enum: [retryable, not_retryable]
+                  amount_limit:
+                    type: number
+        "400":
+          description: The file was refused
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [detail]
+                properties:
+                  detail:
+                    type: string
