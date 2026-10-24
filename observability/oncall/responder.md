@@ -10,4 +10,4 @@ When that alert is firing, run:
 python observability/oncall/responder.py --alert observability/oncall/sample-alert.json
 ```
 
-`sample-alert.json` is a firing payload with no card number. The command restarts the local `app` container and then requests http://127.0.0.1:8001/. It does not POST `/plates` and it does not start a production deploy.
+`sample-alert.json` is a firing payload with no card number. The shopper page is `GET /` on http://127.0.0.1:8001/. An empty file at `observability/oncall/shopper-degrade` makes that route return HTTP 503. The command deletes the file and requests the route again. It does not restart Docker, it does not POST `/plates`, and it does not start a production deploy.

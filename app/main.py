@@ -386,10 +386,13 @@ async def trace_request(request, call_next):
 ROOT = Path(__file__).resolve().parent.parent
 PREVIEW = ROOT / "preview"
 SAMPLES = ROOT / "samples"
+SHOPPER_DEGRADE = ROOT / "observability" / "oncall" / "shopper-degrade"
 
 
 @app.get("/")
 def home():
+    if SHOPPER_DEGRADE.is_file():
+        raise HTTPException(status_code=503, detail="shopper path is degraded")
     return FileResponse(PREVIEW / "index.html", headers={"Cache-Control": "no-store"})
 
 

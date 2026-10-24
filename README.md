@@ -361,7 +361,7 @@ AGENTS.md             # What the local agent pack may do
 
 ## Screenshots
 
-No capture of this app is in the repository. The picture at the top of the page is an editorial photo collage, not a screenshot. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram. Neither file is a capture of the checkout, and this section does not use them as one.
+No capture of this app is in the repository. The picture at the top of the page is one sunlit photograph of a hand holding a blank card, not a screenshot. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram. Neither file is a capture of the checkout, and this section does not use them as one.
 
 Searched, and none of these held a capture of the checkout, the receipt, Inspector, Log, API, or Grafana:
 
@@ -409,7 +409,7 @@ No screenshot file of those boards is stored in this repo. Open the URLs above a
 
 A user-impact rule is provisioned for local Grafana only: [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). It watches HTTP 5xx on `signet_requests_total`. A normal decline is HTTP 200 from `POST /authorizations` and does not raise it. The running Grafana process loads that file when it next reads provisioning. This page does not claim the rule has fired.
 
-The on-call command is `python observability/oncall/responder.py --alert observability/oncall/sample-alert.json`. Given that firing payload, it restarts the local app container and requests http://127.0.0.1:8001/. There is no pager and no rotation. See [`observability/oncall/responder.md`](observability/oncall/responder.md). It stays on this PC.
+The on-call command is `python observability/oncall/responder.py --alert observability/oncall/sample-alert.json`. An empty file at `observability/oncall/shopper-degrade` makes `GET /` return HTTP 503. The command deletes that file and requests http://127.0.0.1:8001/ again. It does not restart Docker. There is no pager and no rotation. See [`observability/oncall/responder.md`](observability/oncall/responder.md). It stays on this PC. It does not POST `/plates` and it does not start a production deploy.
 
 Gate note: [`docs/packets/09-observability.md`](docs/packets/09-observability.md). The security review memo still says alert rules were not added. That memo was not rewritten when this rule file was added.
 
@@ -450,7 +450,7 @@ Course final-project rubric for this gateway. The score is what this repo can cl
 | 9 | **CI/CD** | 3 | 2 | [`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs `pytest` on pull requests with a Postgres 16 service. No badge. A completed green Actions run is not claimed on this page. Development CD is the Render auto-deploy from `main`. Production stays manual. |
 | 10 | **Observability** | 2 | 2 | [`app/telemetry.py`](app/telemetry.py) and [`observability/`](observability/). Metrics, traces, and the structured log share a trace id. The log line has no card number and no CVC. Grafana: http://127.0.0.1:3001. Not on Render. |
 | 11 | **Alerting on user impact** | 1 | 1 | [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). Trigger: the 5-minute rate of HTTP 5xx on `signet_requests_total` stays above 0 for 5 minutes. A normal decline is HTTP 200 and does not raise it. Local Grafana only. This page does not claim the rule has fired. |
-| 12 | **On-call agent** | 2 | 1 | [`observability/oncall/responder.py`](observability/oncall/responder.py) read [`observability/oncall/sample-alert.json`](observability/oncall/sample-alert.json) and found the local app already answering HTTP 200, so it did not repair an outage. An earlier `docker compose restart app` timed out after 180 seconds. Not on Render. No POST `/plates`. |
+| 12 | **On-call agent** | 2 | 2 | [`observability/oncall/responder.py`](observability/oncall/responder.py) read [`observability/oncall/sample-alert.json`](observability/oncall/sample-alert.json). With `observability/oncall/shopper-degrade` absent, `GET /` was HTTP 200. With that file present, `GET /` was HTTP 503. The responder deleted the file and the next `GET /` was HTTP 200. `GET /docs` stayed HTTP 200. Not on Render. No POST `/plates`. No `docker compose restart`. |
 
 ### Quick verification commands
 

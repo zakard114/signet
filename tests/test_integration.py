@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import psycopg
 import pytest
@@ -20,6 +21,7 @@ def client():
 
 @pytest.fixture(autouse=True)
 def clean_tables():
+    main.init_db()
     with psycopg.connect(main.DATABASE_URL) as conn:
         conn.execute("TRUNCATE authorization_log RESTART IDENTITY")
         conn.execute("TRUNCATE plate")
@@ -63,3 +65,15 @@ def test_decline_once(client):
     assert body["stop_step"] == 5
     assert body["sentence"] == "This card was declined."
     assert "4000000000000002" not in response.text
+
+
+def test_shopper_home_degrade_switch(client):
+    degrade = Path(__file__).resolve().parents[1] / "observability" / "oncall" / "shopper-degrade"
+    degrade.unlink(missing_ok=True)
+    try:
+        assert client.get("/").status_code == 200
+        degrade.write_text("", encoding="utf-8")
+        assert client.get("/").status_code == 503
+    finally:
+        degrade.unlink(missing_ok=True)
+    assert client.get("/").status_code == 200

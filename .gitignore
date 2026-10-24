@@ -8,4 +8,5 @@ _plate.json
 _home.html
 AIDT_proj_signet.txt
 .env
+observability/oncall/shopper-degrade
 

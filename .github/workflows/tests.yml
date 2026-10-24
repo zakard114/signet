@@ -2,11 +2,13 @@ name: tests
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    container: python:3.12
     services:
       postgres:
         image: postgres:16
@@ -14,21 +16,20 @@ jobs:
           POSTGRES_USER: signet
           POSTGRES_PASSWORD: signet
           POSTGRES_DB: signet
-        ports:
-          - 5433:5432
         options: >-
           --health-cmd "pg_isready -U signet -d signet"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://signet:signet@127.0.0.1:5433/signet
+      DATABASE_URL: postgresql://signet:signet@postgres:5432/signet
     steps:
+      - name: Install git
+        run: apt-get update && apt-get install -y --no-install-recommends git
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
+      - name: Create tables
+        run: python -c "from app.main import init_db; init_db()"
       - name: Run unit and integration tests
         run: python -m pytest -q

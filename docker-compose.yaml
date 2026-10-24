@@ -49,6 +49,7 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     volumes:
       - E:/IT_SPACES/AI/Projects/aidt/signet/samples:/app/samples
+      - E:/IT_SPACES/AI/Projects/aidt/signet/observability/oncall:/app/observability/oncall
     depends_on:
       - postgres
       - otel-collector

@@ -16,7 +16,7 @@ Owns `app/telemetry.py` and `observability/`. A request carries one trace id on 
 
 ## On-call responder
 
-Wakes when `observability/oncall/responder.py` is given the shopper HTTP 5xx alert payload. It restarts the local `app` container and checks http://127.0.0.1:8001/. It does not POST `/plates`. It does not start a production deploy. It does not run on Render.
+Wakes when `observability/oncall/responder.py` is given the shopper HTTP 5xx alert payload. If `GET /` on http://127.0.0.1:8001/ is HTTP 5xx because `observability/oncall/shopper-degrade` exists, it deletes that file and checks the route again. It does not restart Docker. It does not POST `/plates`. It does not start a production deploy. It does not run on Render.
 
 ## Handoff
 

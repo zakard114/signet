@@ -1,11 +1,10 @@
-"""Wake on the shopper HTTP 5xx alert and restart the local app.
+"""Wake on the shopper HTTP 5xx alert and clear the local degrade switch.
 
-This command stays on this PC. It does not call Render, it does not deploy
-Grafana, and it does not POST /plates.
+This command stays on this PC. It does not restart Docker, it does not call
+Render, it does not deploy Grafana, and it does not POST /plates.
 """
 
 import json
-import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -13,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 APP = "http://127.0.0.1:8001/"
+DEGRADE = ROOT / "observability" / "oncall" / "shopper-degrade"
 
 
 def has_pan(text: str) -> bool:
@@ -49,32 +49,21 @@ def app_status() -> int | None:
         return None
 
 
-def restart_local_app() -> int:
-    try:
-        completed = subprocess.run(
-            ["docker", "compose", "-f", "docker-compose.yaml", "restart", "app"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=60,
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        sys.stdout.write("fix failed: local app restart timed out\n")
-        return 1
-    if completed.returncode != 0:
-        sys.stdout.write("fix failed: local app did not restart\n")
-        return 1
-    try:
-        with urllib.request.urlopen(APP, timeout=20) as response:
-            status = response.status
-    except (urllib.error.URLError, TimeoutError, OSError):
-        sys.stdout.write("fix failed: local app did not answer after restart\n")
+def clear_shopper_degrade() -> None:
+    if DEGRADE.is_file():
+        DEGRADE.unlink()
+
+
+def repair_shopper_path() -> int:
+    clear_shopper_degrade()
+    status = app_status()
+    if status is None:
+        sys.stdout.write("fix failed: local app did not answer\n")
         return 1
     if status >= 500:
         sys.stdout.write(f"fix failed: local app answered HTTP {status}\n")
         return 1
-    sys.stdout.write(f"fixed: restarted local app, HTTP {status}\n")
+    sys.stdout.write(f"fixed: cleared shopper degrade, HTTP {status}\n")
     sys.stdout.write("did not POST /plates and did not start a production deploy\n")
     return 0
 
@@ -90,16 +79,20 @@ def main() -> int:
         return 1
     payload = json.loads(text)
     if not shopper_alert_firing(payload):
-        sys.stdout.write("not firing: no local restart\n")
+        sys.stdout.write("not firing: no repair\n")
         return 0
     sys.stdout.write("alert firing: shopper HTTP 5xx\n")
     status = app_status()
     if status is not None and status < 500:
         sys.stdout.write(f"shoppers are being served: HTTP {status}\n")
-        sys.stdout.write("no restart\n")
+        sys.stdout.write("no repair\n")
         sys.stdout.write("did not POST /plates and did not start a production deploy\n")
         return 0
-    return restart_local_app()
+    if status is None:
+        sys.stdout.write("shopper path did not answer\n")
+    else:
+        sys.stdout.write(f"shopper path HTTP {status}\n")
+    return repair_shopper_path()
 
 
 if __name__ == "__main__":
