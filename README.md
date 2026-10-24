@@ -369,6 +369,7 @@ Searched, and none of these held a capture of the checkout, the receipt, Inspect
 - `C:\Users\HP EliteBook\.cursor\projects\e-IT-SPACES-AI-Projects-aidt-signet\agent-transcripts\` — the name `ISSUE_3.png` appears as text in a pasted note. No image file with that name is stored there
 - `E:\IT_SPACES\AI\Projects\aidt\signet\docs\` — `signet-gateway.jpg` and `signet-architecture.jpg` only
 - Names matching `ISSUE`, `screenshot`, `screen`, or `capture` under `E:\IT_SPACES\AI\Projects\aidt\signet` — no app capture
+- Filename `ISSUE_3.png` under `C:\Users\HP EliteBook\Downloads`, `Desktop`, `Pictures`, and `E:\IT_SPACES\AI` — no file by that name was found before this page was written
 
 The labels below are the ones in [`preview/index.html`](preview/index.html). The running page is http://127.0.0.1:8001/ and https://signet-3oz8.onrender.com.
 
@@ -439,7 +440,7 @@ Course final-project rubric for this gateway. The score is what this repo can cl
 | # | Criterion | Max | Score | What Signet has |
 |---|-----------|----:|------:|-----------------|
 | 1 | **Problem description** | 2 | 2 | [Problem](#problem) and [`SPEC.md`](SPEC.md). E-commerce payment gateway and ops console. Six steps: Intake, amount ceiling, card length, authorization request, decision, next action. A success issues a receipt with a trace id. The full card number is never stored. The decision runs inside this service. |
-| 2 | **Product specification** | 2 | 2 | Written spec: [`SPEC.md`](SPEC.md). Task tracker: https://github.com/zakard114/signet/issues. Issues state acceptance criteria. Implementation comments are on those issues. |
+| 2 | **Product specification** | 2 | 2 | Written spec: [`SPEC.md`](SPEC.md). Task tracker: https://github.com/zakard114/signet/issues. Acceptance criteria and implementation comments are on [#4](https://github.com/zakard114/signet/issues/4), [#5](https://github.com/zakard114/signet/issues/5), [#6](https://github.com/zakard114/signet/issues/6), and [#7](https://github.com/zakard114/signet/issues/7). |
 | 3 | **Agent team specification** | 2 | 2 | [`docs/team.md`](docs/team.md), linked from [`AGENTS.md`](AGENTS.md). Roles: checkout and backend, ops console, observability, on-call responder. |
 | 4 | **Context management** | 2 | 2 | [`AGENTS.md`](AGENTS.md) states the project and links [`docs/process.md`](docs/process.md), [`docs/team.md`](docs/team.md), [`docs/permissions.md`](docs/permissions.md), and [`docs/packets/`](docs/packets/). Grafana and the agent pack stay off Render. No full card number in files, logs, or telemetry. No POST `/plates` from the pack. |
 | 5 | **Application** | 2 | 2 | [`preview/index.html`](preview/index.html), [`app/main.py`](app/main.py), Postgres. One command: `docker compose -f docker-compose.yaml up -d --build`. Screen labels are the ones in that HTML file. |
@@ -449,7 +450,7 @@ Course final-project rubric for this gateway. The score is what this repo can cl
 | 9 | **CI/CD** | 3 | 2 | [`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs `pytest` on pull requests with a Postgres 16 service. No badge. A completed green Actions run is not claimed on this page. Development CD is the Render auto-deploy from `main`. Production stays manual. |
 | 10 | **Observability** | 2 | 2 | [`app/telemetry.py`](app/telemetry.py) and [`observability/`](observability/). Metrics, traces, and the structured log share a trace id. The log line has no card number and no CVC. Grafana: http://127.0.0.1:3001. Not on Render. |
 | 11 | **Alerting on user impact** | 1 | 1 | [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). Trigger: the 5-minute rate of HTTP 5xx on `signet_requests_total` stays above 0 for 5 minutes. A normal decline is HTTP 200 and does not raise it. Local Grafana only. This page does not claim the rule has fired. |
-| 12 | **On-call agent** | 2 | 1 | [`observability/oncall/responder.py`](observability/oncall/responder.py) and [`observability/oncall/sample-alert.json`](observability/oncall/sample-alert.json). The command restarts the local app when that payload is firing. Score stays 1 until that command has been run and the local app has answered. It does not run on Render and it does not POST `/plates`. |
+| 12 | **On-call agent** | 2 | 1 | [`observability/oncall/responder.py`](observability/oncall/responder.py) read [`observability/oncall/sample-alert.json`](observability/oncall/sample-alert.json) and found the local app already answering HTTP 200, so it did not repair an outage. An earlier `docker compose restart app` timed out after 180 seconds. Not on Render. No POST `/plates`. |
 
 ### Quick verification commands
 

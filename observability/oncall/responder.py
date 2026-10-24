@@ -39,15 +39,29 @@ def shopper_alert_firing(payload: dict) -> bool:
     return False
 
 
+def app_status() -> int | None:
+    try:
+        with urllib.request.urlopen(APP, timeout=5) as response:
+            return int(response.status)
+    except urllib.error.HTTPError as exc:
+        return int(exc.code)
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return None
+
+
 def restart_local_app() -> int:
-    completed = subprocess.run(
-        ["docker", "compose", "-f", "docker-compose.yaml", "restart", "app"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        timeout=180,
-        check=False,
-    )
+    try:
+        completed = subprocess.run(
+            ["docker", "compose", "-f", "docker-compose.yaml", "restart", "app"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        sys.stdout.write("fix failed: local app restart timed out\n")
+        return 1
     if completed.returncode != 0:
         sys.stdout.write("fix failed: local app did not restart\n")
         return 1
@@ -79,6 +93,12 @@ def main() -> int:
         sys.stdout.write("not firing: no local restart\n")
         return 0
     sys.stdout.write("alert firing: shopper HTTP 5xx\n")
+    status = app_status()
+    if status is not None and status < 500:
+        sys.stdout.write(f"shoppers are being served: HTTP {status}\n")
+        sys.stdout.write("no restart\n")
+        sys.stdout.write("did not POST /plates and did not start a production deploy\n")
+        return 0
     return restart_local_app()
 
 
