@@ -1,6 +1,6 @@
 # Signet
 
-![Signet — a shopper at a dark counter, brass light, card edge unread](docs/signet-gateway.jpg)
+![Signet — editorial collage of a blank card, a laptop, and a phone](docs/signet-gateway.jpg)
 
 **An e-commerce payment gateway, with the operations console beside the checkout.** The shopper pays in this service. The operator inspects the same payment and sets the amount ceiling. The full card number is never stored and never returned.
 
@@ -361,7 +361,7 @@ AGENTS.md             # What the local agent pack may do
 
 ## Screenshots
 
-No capture of this app is in the repository. The picture at the top of the page is a campaign still. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram. Neither file is a screenshot, and this section does not use them as one.
+No capture of this app is in the repository. The picture at the top of the page is an editorial photo collage, not a screenshot. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram. Neither file is a capture of the checkout, and this section does not use them as one.
 
 Searched, and none of these held a capture of the checkout, the receipt, Inspector, Log, API, or Grafana:
 
