@@ -21,7 +21,7 @@
       --field: #12130f;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; }
+    html, body { margin: 0; min-height: 100%; overflow-x: clip; }
     body {
       background:
         radial-gradient(900px 480px at 70% 10%, rgba(214, 177, 94, 0.06), transparent 60%),
@@ -36,6 +36,22 @@
       display: grid;
       place-items: center;
       padding: 40px 24px;
+      overflow-x: clip;
+    }
+    main.receipt-open {
+      place-items: center start;
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+    .stage {
+      width: min(980px, 100%);
+      display: flex;
+      align-items: stretch;
+      transition: width 480ms ease, transform 480ms ease;
+    }
+    .stage.open {
+      width: min(1480px, calc(100vw - 32px));
+      transform: none;
     }
     .desk {
       width: min(980px, 100%);
@@ -46,6 +62,38 @@
       border-radius: 28px;
       overflow: hidden;
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    }
+    .stage > .desk {
+      width: auto;
+      flex: 1 1 auto;
+      min-width: 0;
+      border-radius: 28px 0 0 28px;
+    }
+    .stage:not(.open) > .desk { border-radius: 28px; }
+    .stage.open > .desk {
+      flex: 0 0 980px;
+      width: 980px;
+    }
+    .slip {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 42px 40px 36px;
+      background: #171910;
+      border: 1px solid var(--line);
+      border-left: 0;
+      border-radius: 0 28px 28px 0;
+      opacity: 0;
+      transition: opacity 480ms ease 80ms;
+    }
+    .stage.open .slip { opacity: 1; }
+    .slip .sentence { font-size: 42px; margin-top: 8px; }
+    .slip .sentence.stop { color: var(--stop); }
+    .slip .note { color: var(--dim); line-height: 1.5; margin: 0 0 14px; }
+    .slip .actions { margin-top: 64px; }
+    @media (max-width: 860px) {
+      .stage.open { width: min(980px, 100%); flex-direction: column; }
+      .stage > .desk, .stage:not(.open) > .desk { border-radius: 28px 28px 0 0; }
+      .slip { flex: none; border-left: 1px solid var(--line); border-top: 0; border-radius: 0 0 28px 28px; }
     }
     .rail { padding: 36px 28px; border-right: 1px solid var(--line); }
     .mark {
@@ -72,7 +120,29 @@
     #rail li.now .n { color: var(--brass); }
     #rail li.stop { color: var(--bone); }
     #rail li.stop .n { color: var(--stop); }
-    .pay { padding: 42px 48px 36px; }
+    .pay { position: relative; padding: 42px 48px 36px; }
+    .pay.sealed #amount-display,
+    .pay.sealed #amount,
+    .pay.sealed #card,
+    .pay.sealed #cvc {
+      color: rgba(236, 230, 216, 0.34);
+      pointer-events: none;
+    }
+    .pay.sealed #card.masked,
+    .pay.sealed #cvc.masked {
+      color: transparent;
+      caret-color: transparent;
+    }
+    .pay.sealed .mask-mirror { color: rgba(236, 230, 216, 0.34); }
+    .pay-bottom { margin-top: 72px; }
+    .pay-line,
+    .note.form-msg { transition: opacity 0.7s ease; }
+    .pay-line.leaving,
+    .note.form-msg.leaving { opacity: 0; }
+    .pay-line { margin: 0 0 12px; min-height: 1.4em; color: var(--ok); font-size: 15px; line-height: 1.4; }
+    .pay-line.stop { color: var(--stop); }
+    .pay-bottom .actions { width: 100%; }
+    #view-receipt { margin-left: auto; }
     .eyebrow { color: var(--dim); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
     h1 {
       font-family: "Instrument Serif", serif;
@@ -100,7 +170,63 @@
       font-size: 18px;
       margin-bottom: 18px;
     }
+    .card-row {
+      display: grid;
+      grid-template-columns: 7fr 3fr;
+      gap: 12px;
+    }
+    .card-row input { margin-bottom: 0; }
+    .card-field { position: relative; }
+    .card-field input {
+      padding-right: 52px;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    .card-field input.masked {
+      color: transparent;
+      caret-color: var(--bone);
+    }
+    .mask-mirror {
+      position: absolute;
+      left: 18px;
+      right: 52px;
+      top: 50%;
+      transform: translateY(-50%);
+      overflow: hidden;
+      color: var(--bone);
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 18px;
+      line-height: 1;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .mask-mirror .dot {
+      display: inline-block;
+      width: 1ch;
+      text-align: center;
+    }
+    .card-eye {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--dim);
+      padding: 6px;
+      cursor: pointer;
+    }
+    .card-eye:hover { color: var(--bone); }
+    .card-eye svg { display: block; width: 100%; height: 100%; }
     input:focus { outline: 1px solid var(--brass); }
+    .req { color: var(--stop); margin-left: 0.28em; }
+    input.invalid,
+    input.invalid:focus {
+      border-color: var(--stop);
+      outline: none;
+    }
     button.primary, button.ghost {
       border: 0;
       border-radius: 999px;
@@ -111,20 +237,35 @@
     }
     .actions { display: flex; gap: 8px; align-items: center; }
     button.primary { background: transparent; color: var(--bone); border: 1px solid var(--line); }
-    button.primary:disabled { opacity: 0.45; cursor: progress; }
+    button.primary:disabled, button.ghost:disabled { opacity: 0.45; cursor: default; }
+    button.ghost:disabled { opacity: 0.45; cursor: default; }
     button.ghost { background: transparent; color: var(--bone); border: 1px solid var(--line); }
     button.primary:hover:not(:disabled),
     button.ghost:hover:not(:disabled) {
       color: #fffaf2;
       border-color: rgba(236, 230, 216, 0.72);
     }
-    .result { min-height: 280px; }
+    .ops-body h3 {
+      font-family: "Instrument Serif", serif;
+      font-weight: 400;
+      font-size: 28px;
+      margin: 28px 0 8px;
+    }
+    @media print {
+      body { background: #fff; color: #141512; }
+      .rail, button.ops-corner, #ops, #form, #open-statement, #slip .actions { display: none !important; }
+      .stage, .stage.open { display: block; width: auto; }
+      #slip { display: block !important; border: 0; background: #fff; color: #141512; }
+      #slip, #slip .sentence, #slip .kv dd { color: #141512; }
+      #slip .kv dt, #slip .eyebrow { color: #5c574c; }
+    }
     .sentence {
       font-family: "Instrument Serif", serif;
       font-size: 42px;
       line-height: 1.15;
       margin: 12px 0 18px;
     }
+    .result .actions { margin-top: 8px; }
     .ok { color: var(--ok); }
     .meta { color: var(--dim); font-size: 14px; margin-bottom: 22px; }
     .ops {
@@ -136,6 +277,67 @@
       padding: 28px 32px 24px;
       overflow: hidden;
     }
+    .ops-stage {
+      width: min(980px, 100%);
+      max-height: calc(100vh - 48px);
+      display: flex;
+      align-items: stretch;
+      transition: width 480ms ease;
+    }
+    .ops-stage.open { width: min(1480px, calc(100vw - 32px)); }
+    .ops-stage > .ops { width: auto; flex: 1 1 auto; min-width: 0; }
+    .ops-stage.open > .ops {
+      flex: 0 0 980px;
+      width: 980px;
+      border-radius: 28px 0 0 28px;
+    }
+    .rule-slip {
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 0;
+      padding: 28px 28px 24px;
+      background: #171910;
+      border: 1px solid var(--line);
+      border-left: 0;
+      border-radius: 0 28px 28px 0;
+      overflow: auto;
+    }
+    .rule-slip h2 {
+      font-family: "Instrument Serif", serif;
+      font-weight: 400;
+      font-size: 36px;
+      margin: 8px 0 16px;
+    }
+    .rule-slip .actions { margin-top: 28px; }
+    .limit-box {
+      border: 1px solid var(--bone);
+      border-radius: 18px;
+      padding: 16px 22px 6px;
+      margin: 4px 8px 22px 0;
+    }
+    .limit-box .actions { margin-top: 0; }
+    .rule-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .rule-title h2 { margin: 8px 0 12px; }
+    .rule-doc { border-top: 1px solid var(--line); padding: 14px 0; }
+    .rule-line { display: flex; align-items: center; gap: 10px; }
+    .rule-status { min-width: 3.2ch; font-size: 18px; font-variant-numeric: tabular-nums; }
+    .rule-name {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: 0;
+      padding: 0;
+      color: var(--bone);
+      font: inherit;
+      font-size: 16px;
+      text-align: left;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rule-detail { margin-top: 14px; }
+    .rule-detail .actions { margin-top: 14px; }
     .ops-head {
       display: flex;
       align-items: center;
@@ -144,7 +346,7 @@
       margin-bottom: 18px;
       flex: 0 0 auto;
     }
-    .ops-body { overflow: auto; min-height: 0; }
+    .ops-body { overflow: auto; min-height: 0; padding-right: 36px; }
     .ops .mark { margin-bottom: 0; }
     .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
     button.tab {
@@ -210,18 +412,29 @@
     .card-out dt { margin: 0; color: var(--dim); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
     .card-out dd { margin: 4px 0 0; color: var(--bone); font-size: 22px; line-height: 1.35; overflow-wrap: break-word; }
     .card-out dd.stop-num { color: var(--stop); }
-    .card-out dd.ok-num { color: var(--ok); }
+    .card-out dd.ok-num { color: #7dcc6e; }
     .kv { display: grid; grid-template-columns: minmax(108px, 168px) minmax(0, 1fr); gap: 8px 18px; margin: 8px 0 18px; }
     .kv dt { margin: 0; color: var(--dim); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
     .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
     .stop-num { color: var(--stop); font-variant-numeric: tabular-nums; }
-    .ok-num { color: var(--ok); font-variant-numeric: tabular-nums; }
+    .ok-num { color: #7dcc6e; font-variant-numeric: tabular-nums; }
     .entries { display: grid; gap: 14px; }
     .entry { border-top: 1px solid var(--line); padding-top: 12px; }
     .entry p { margin: 0; }
+    .entry .when {
+      color: var(--dim);
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      letter-spacing: 0;
+      margin-bottom: 6px;
+    }
     .entry .entry-title { color: var(--bone); font-size: 22px; line-height: 1.3; margin-bottom: 6px; overflow-wrap: break-word; }
     #api-routes { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 10px; }
     #api-routes li { color: var(--bone); font-size: 16px; line-height: 1.4; overflow-wrap: break-word; }
+    #api-routes .verb-get { color: #61affe; }
+    #api-routes .verb-post { color: #49cc90; }
+    #api-routes .verb-put { color: #fca130; }
+    #api-routes .verb-delete { color: #f93e3e; }
     .ops a { color: var(--brass); }
     .query { color: var(--brass); margin: 0 0 14px; }
     iframe.embed {
@@ -242,6 +455,7 @@
       padding-top: 18px;
       border-top: 1px solid var(--line);
     }
+    #rule-form button[type=submit] { margin-top: 14px; }
     .metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
     .metric {
       background: var(--field);
@@ -367,6 +581,7 @@
 </head>
 <body>
   <main>
+    <div class="stage" id="stage">
     <section class="desk" id="checkout">
       <aside class="rail">
         <div class="mark">Signet</div>
@@ -376,24 +591,65 @@
         <div id="form">
           <div class="eyebrow">Payment</div>
           <h1 id="amount-display">128.00</h1>
-          <label id="limit-label" for="amount">Amount USD · Limit 500.00</label>
+          <label for="amount"><span id="limit-label">Amount USD · Limit 500.00</span></label>
           <input id="amount" type="text" inputmode="decimal" value="128.00" />
-          <label for="card">Card number</label>
-          <input id="card" type="text" inputmode="numeric" value="4242424242424242" />
-          <div class="actions">
-            <button class="primary" id="go" type="button">Authorize</button>
-            <button class="ghost" id="clear" type="button">AC</button>
+          <div class="card-row">
+            <div>
+              <label for="card">Card number</label>
+              <div class="card-field">
+                <input id="card" class="masked" type="text" inputmode="numeric" autocomplete="off" value="4242424242424242" />
+                <span class="mask-mirror" aria-hidden="true"></span>
+                <button class="card-eye" id="card-eye" type="button" aria-pressed="false" aria-label="Show card number">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label for="cvc">CVC</label>
+              <div class="card-field">
+                <input id="cvc" class="masked" type="text" inputmode="numeric" maxlength="4" autocomplete="off" />
+                <span class="mask-mirror" aria-hidden="true"></span>
+                <button class="card-eye" id="cvc-eye" type="button" aria-pressed="false" aria-label="Show CVC">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="pay-bottom">
+            <p id="pay-line" class="pay-line"></p>
+            <div class="actions">
+              <button class="primary" id="go" type="button">Authorize</button>
+              <button class="ghost" id="clear" type="button">AC</button>
+              <button class="ghost" id="end-sale" type="button" disabled>End</button>
+              <button class="ghost" id="view-receipt" type="button" hidden>Statement</button>
+            </div>
           </div>
         </div>
-        <div id="result" class="result" hidden></div>
       </section>
     </section>
-    <section class="desk ops" id="ops" hidden>
+    <aside class="slip" id="slip" hidden>
+      <div class="eyebrow" id="receipt-kicker">Statement</div>
+      <p class="sentence" id="receipt-title"></p>
+      <p class="note" id="receipt-empty" hidden>No transaction yet.</p>
+      <dl class="kv" id="receipt-sheet"></dl>
+      <div class="actions" id="slip-actions">
+        <button class="ghost" id="slip-print" type="button">Print</button>
+        <button class="ghost" id="slip-close" type="button">Close</button>
+      </div>
+    </aside>
+    </div>
+    <div class="ops-stage" id="ops-stage" hidden>
+    <section class="desk ops" id="ops">
       <div class="ops-head">
         <div class="mark">Signet</div>
         <div class="tabs" id="tabs">
-          <button class="tab on" type="button" data-tab="card">Card</button>
-          <button class="tab" type="button" data-tab="rules">Rule</button>
+          <button class="tab on" type="button" data-tab="card">Inspector</button>
           <button class="tab" type="button" data-tab="log">Log</button>
           <button class="tab" type="button" data-tab="api">API</button>
           <button class="tab" type="button" data-tab="grafana">Grafana</button>
@@ -402,69 +658,20 @@
       </div>
       <div class="ops-body">
         <div data-panel="card">
-          <div class="eyebrow">Card</div>
-          <h2>One decline card</h2>
-          <p class="note" id="card-status">Reading the saved card.</p>
+          <div class="eyebrow">Inspector</div>
+          <h2>Transaction statement</h2>
+          <p class="note" id="receipt-card-status">Reading the latest transaction.</p>
+          <dl class="kv" id="receipt-card-sheet"></dl>
+          <h3>Payment detail</h3>
+          <p class="note" id="card-status">Dev view of this receipt.</p>
           <dl class="card-out" id="card-view"></dl>
-          <form id="card-form">
-            <label for="plate-name">Name</label>
-            <input id="plate-name" type="text" autocomplete="off" />
-            <label for="plate-message">Customer sentence</label>
-            <input id="plate-message" type="text" autocomplete="off" />
-            <label for="plate-status">HTTP status</label>
-            <input id="plate-status" type="text" inputmode="numeric" autocomplete="off" />
-            <label for="plate-field">Log field</label>
-            <input id="plate-field" type="text" autocomplete="off" />
-            <label for="plate-retry">Retry</label>
-            <select id="plate-retry">
-              <option value="not_retryable">not_retryable</option>
-              <option value="retryable">retryable</option>
-            </select>
-            <button class="primary" type="submit">Save card</button>
-            <p class="note form-msg" id="card-save"></p>
-          </form>
-        </div>
-        <div data-panel="rules" hidden>
-          <div class="eyebrow">Rule</div>
-          <h2>Institution rule</h2>
-          <p id="rule-status" class="note">Reading the institution rule.</p>
-          <form id="rule-direct" class="rule-block">
-            <label for="rule-code">Institution rule</label>
-            <input id="rule-code" type="text" autocomplete="off" />
-            <label for="rule-sentence">Customer sentence</label>
-            <input id="rule-sentence" type="text" autocomplete="off" />
-            <label for="rule-http">HTTP status</label>
-            <input id="rule-http" type="text" inputmode="numeric" value="400" autocomplete="off" />
-            <label for="rule-log-field">Log field</label>
-            <input id="rule-log-field" type="text" value="card" autocomplete="off" />
-            <label for="rule-retry">Retry</label>
-            <select id="rule-retry">
-              <option value="retryable">retryable</option>
-              <option value="not_retryable">not_retryable</option>
-            </select>
-            <label for="rule-limit">Amount limit USD</label>
-            <input id="rule-limit" type="text" inputmode="decimal" value="500.00" autocomplete="off" />
-            <button class="primary" type="submit">Set rule</button>
-            <p class="note form-msg" id="rule-direct-save"></p>
-          </form>
-          <div class="rule-diff" id="rule-diff" hidden>
-            <h3>What changed</h3>
-            <p class="note" id="rule-diff-note"></p>
-            <div class="diff-row">
-              <span class="diff-label"></span>
-              <span class="diff-head" id="rule-diff-before-head">Before</span>
-              <span class="diff-head">After</span>
+          <div class="limit-box">
+            <label for="amount-limit">Amount limit USD</label>
+            <input id="amount-limit" type="text" inputmode="decimal" autocomplete="off" />
+            <p id="limit-msg"></p>
+            <div class="actions">
+              <button class="primary" id="set-limit" type="button">Set limit</button>
             </div>
-            <div id="rule-diff-rows"></div>
-          </div>
-          <div class="rule-split">
-            <div class="eyebrow">CSV import</div>
-            <p class="note">The first CSV data row sets the rule for other cards. The amount_limit column sets the payment ceiling. Without that column the ceiling stays 500.00 USD. A file whose text contains 13 or more consecutive digits is refused and is not stored.</p>
-            <form id="rule-form">
-              <input id="rule-file" type="file" accept=".csv,.txt,text/csv,text/plain" />
-              <button class="primary" type="submit">Upload CSV</button>
-              <p class="note form-msg" id="rule-save"></p>
-            </form>
           </div>
         </div>
         <div data-panel="log" hidden>
@@ -524,6 +731,7 @@
         </div>
       </div>
     </section>
+    </div>
   </main>
   <button class="ops-corner" id="open-ops" type="button">Ops</button>
   <script>
@@ -532,14 +740,15 @@
     let limit = LIMIT;
     const rail = document.getElementById("rail");
     const form = document.getElementById("form");
-    const result = document.getElementById("result");
     const amountInput = document.getElementById("amount");
     const cardInput = document.getElementById("card");
     const display = document.getElementById("amount-display");
     const go = document.getElementById("go");
     const openOps = document.getElementById("open-ops");
+    const stage = document.getElementById("stage");
     const checkout = document.getElementById("checkout");
     const ops = document.getElementById("ops");
+    const opsStage = document.getElementById("ops-stage");
 
     function paint(active, stopAt, why) {
       rail.innerHTML = STEPS.map((name, i) => {
@@ -551,6 +760,14 @@
         const note = stopAt === n && why ? `<span class="why">${why}</span>` : "";
         return `<li class="${cls}"><span class="n">0${n}</span><span><span class="name">${name}</span>${note}</span></li>`;
       }).join("");
+    }
+
+    function when(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      const pad = (part) => String(part).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     }
 
     function money(value) {
@@ -614,7 +831,9 @@
       });
     }
 
-    function outcomeFromBody(body) {
+    const DECLINE_CARD = "4000000000000002";
+
+    function outcomeFromBody(body, plate) {
       const stop = body.stop_step || 0;
       let why = "";
       if (stop === 2) why = "Amount exceeds limit";
@@ -623,195 +842,315 @@
       const retryLabel = body.retry === "retryable"
         ? (body.log_field === "amount" ? "Edit amount" : "Edit card")
         : "";
-      const amountText = money(body.amount);
-      const decision = stop
-        ? `HTTP ${body.http_status} · ${body.log_field} · ${body.retry === "retryable" ? "Retryable" : "Not retryable"}`
-        : "";
-      const meta = [amountText, decision].filter(Boolean).join(" · ");
-      return { stop, why, title: body.sentence, meta, retry: retryLabel };
+      const usedCard = stop === 5 && plate && plate.name;
+      return {
+        stop,
+        why,
+        title: body.sentence,
+        retry: retryLabel,
+        issued: when(new Date().toISOString()),
+        amountText: money(body.amount),
+        http: "HTTP " + body.http_status,
+        httpTone: statusClass(body.http_status),
+        retryState: body.retry === "retryable" ? "Retryable" : "Not retryable",
+        cardName: usedCard ? plate.name : "",
+      };
     }
 
-    async function loadCard() {
+    function outcomeFromPlate(plate, amount) {
+      return {
+        stop: 5,
+        why: "Payment authorization failed",
+        title: plate.user_facing_message || "We could not complete your payment.",
+        retry: plate.retry_allowed === "retryable" ? "Edit card" : "",
+        issued: when(new Date().toISOString()),
+        amountText: money(amount),
+        http: "HTTP " + plate.http_status,
+        httpTone: statusClass(plate.http_status),
+        retryState: plate.retry_allowed === "retryable" ? "Retryable" : "Not retryable",
+        cardName: plate.name || "",
+      };
+    }
+
+    async function savedDeclineCard(pan) {
+      if (pan !== DECLINE_CARD) return null;
+      try {
+        const response = await fetch("/plates");
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function renderReceipt(sheet, empty, receipt) {
+      if (!receipt) {
+        empty.hidden = false;
+        sheet.replaceChildren();
+        return;
+      }
+      empty.hidden = true;
+      const status = receipt.status === "SUCCESS" ? "SUCCESS" : "DECLINED";
+      fillPairs(sheet, [
+        ["Status", status, status === "SUCCESS" ? "ok-num" : "stop-num"],
+        ["Amount", money(receipt.amount) || "—"],
+        ["Card", receipt.masked_card || "—"],
+        ["Trace ID", receipt.trace_id || "—"],
+        ["Timestamp", when(receipt.created_at) || "—"],
+      ]);
+    }
+
+    async function readLatestReceipt() {
+      const response = await fetch("/authorizations/latest");
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    }
+
+    let slipCopy = null;
+
+    function renderWideReceipt(receipt) {
+      const kicker = document.getElementById("receipt-kicker");
+      const title = document.getElementById("receipt-title");
+      const empty = document.getElementById("receipt-empty");
+      const sheet = document.getElementById("receipt-sheet");
+      const printable = !!receipt;
+      document.getElementById("slip-print").disabled = !printable;
+      slipCopy = receipt;
+      if (!receipt) {
+        kicker.textContent = "Statement";
+        title.textContent = "";
+        title.className = "sentence";
+        empty.hidden = false;
+        sheet.replaceChildren();
+        return;
+      }
+      const success = receipt.status === "SUCCESS";
+      kicker.textContent = success ? "Completed" : "Declined";
+      title.className = "sentence";
+      title.textContent = "Receipt";
+      empty.hidden = true;
+      fillPairs(sheet, [
+        ["Amount", money(receipt.amount) || "—"],
+        ["Card", receipt.masked_card || "—"],
+        ["Trace ID", receipt.trace_id || "—"],
+        ["Timestamp", when(receipt.created_at) || "—"],
+      ]);
+    }
+
+    let issued = false;
+
+    async function openReceipt() {
+      if (!issued) {
+        closeStatement();
+        return;
+      }
+      let receipt = null;
+      try {
+        receipt = await readLatestReceipt();
+      } catch (err) {
+        receipt = null;
+      }
+      if (!receipt || Number(receipt.http_status) !== 200) {
+        closeStatement();
+        return;
+      }
+      renderWideReceipt(receipt);
+      const slip = document.getElementById("slip");
+      slip.hidden = false;
+      sealPay();
+      requestAnimationFrame(() => stage.classList.add("open"));
+    }
+
+    function payFields() {
+      return [amountInput, cardInput, document.getElementById("cvc")];
+    }
+
+    function sealPay() {
+      document.querySelector(".pay").classList.add("sealed");
+      payFields().forEach((input) => {
+        input.readOnly = true;
+        input.tabIndex = -1;
+      });
+      go.disabled = true;
+      document.getElementById("clear").disabled = true;
+    }
+
+    function unsealPay() {
+      document.querySelector(".pay").classList.remove("sealed");
+      payFields().forEach((input) => {
+        input.readOnly = false;
+        input.removeAttribute("tabindex");
+      });
+      go.disabled = false;
+      document.getElementById("clear").disabled = false;
+    }
+
+    function endSale() {
+      issued = false;
+      document.getElementById("view-receipt").hidden = true;
+      document.getElementById("end-sale").disabled = true;
+      closeStatement();
+    }
+
+    function closeStatement() {
+      document.getElementById("slip").hidden = true;
+      stage.classList.remove("open");
+      unsealPay();
+    }
+
+    function pdfText(value) {
+      return String(value).replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+    }
+
+    function receiptPdf(lines) {
+      const commands = ["BT", "/F1 22 Tf", "72 740 Td", `(${pdfText(lines[0])}) Tj`, "/F1 12 Tf"];
+      lines.slice(1).forEach((line) => {
+        commands.push("0 -24 Td", `(${pdfText(line)}) Tj`);
+      });
+      commands.push("ET");
+      const stream = commands.join("\n");
+      const objects = [
+        "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n",
+        "2 0 obj << /Type /Pages /Count 1 /Kids [3 0 R] >> endobj\n",
+        "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n",
+        `4 0 obj << /Length ${stream.length} >> stream\n${stream}\nendstream endobj\n`,
+        "5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n",
+      ];
+      let pdf = "%PDF-1.4\n";
+      const xref = [0];
+      objects.forEach((obj) => {
+        xref.push(pdf.length);
+        pdf += obj;
+      });
+      const startxref = pdf.length;
+      pdf += `xref\n0 ${xref.length}\n`;
+      pdf += "0000000000 65535 f \n";
+      for (let i = 1; i < xref.length; i += 1) {
+        pdf += `${String(xref[i]).padStart(10, "0")} 00000 n \n`;
+      }
+      pdf += `trailer << /Size ${xref.length} /Root 1 0 R >>\nstartxref\n${startxref}\n%%EOF`;
+      return new Blob([pdf], { type: "application/pdf" });
+    }
+
+    function saveReceiptPdf() {
+      if (!slipCopy) return;
+      const success = slipCopy.status === "SUCCESS";
+      const blob = receiptPdf([
+        "Receipt",
+        success ? "Completed" : "Declined",
+        `Amount ${money(slipCopy.amount) || "—"}`,
+        `Card ${slipCopy.masked_card || "—"}`,
+        `Trace ID ${slipCopy.trace_id || "—"}`,
+        `Timestamp ${when(slipCopy.created_at) || "—"}`,
+      ]);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "receipt.pdf";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function paintDev(receipt) {
       const status = document.getElementById("card-status");
       const view = document.getElementById("card-view");
-      status.className = "note";
-      status.textContent = "Reading the saved card.";
-      let failed = null;
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-          const response = await fetch("/plates");
-          if (response.status === 404) {
-            status.className = "note";
-            status.textContent = "No decline card is saved.";
-            view.replaceChildren();
-            return;
-          }
-          if (!response.ok) throw new Error("HTTP " + response.status);
-          const plate = await response.json();
-          status.className = "note";
-          status.textContent = "Saved decline card. The next save overwrites this one card.";
-          fillPairs(view, [
-            ["Name", plate.name],
-            ["Customer sentence", plate.user_facing_message],
-            ["HTTP status", plate.http_status, statusClass(plate.http_status)],
-            ["Log field", plate.log_fields],
-            ["Retry", plate.retry_allowed],
-          ]);
-          document.getElementById("plate-name").value = plate.name || "";
-          document.getElementById("plate-message").value = plate.user_facing_message || "";
-          document.getElementById("plate-status").value = plate.http_status == null ? "" : String(plate.http_status);
-          document.getElementById("plate-field").value = plate.log_fields || "";
-          document.getElementById("plate-retry").value = plate.retry_allowed || "not_retryable";
-          return;
-        } catch (err) {
-          failed = err;
-          await new Promise((r) => setTimeout(r, 400));
-        }
+      if (!receipt) {
+        status.className = "note";
+        status.textContent = "No transaction yet.";
+        view.replaceChildren();
+        return;
       }
-      status.textContent = "The decline card could not be read.";
-      status.className = "bad";
+      status.className = "note";
+      status.textContent = "Dev view of this receipt.";
+      fillPairs(view, [
+        ["Customer sentence", receipt.sentence || "—"],
+        ["HTTP status", receipt.http_status, statusClass(receipt.http_status)],
+        ["Log field", receipt.log_field || "—"],
+        ["Retry", receipt.retry || "—"],
+      ]);
     }
 
-    let ruleLoad = 0;
-    let currentRule = null;
-    const NO_RULE = {
-      filename: "(none)",
-      code: "—",
-      sentence: "There is no decline rule for this card.",
-      http_status: 400,
-      log_field: "card",
-      retry: "not_retryable",
-      amount_limit: LIMIT,
-    };
-
-    function limitText(value) {
-      const amount = Number(value);
-      if (!Number.isFinite(amount)) return `${LIMIT.toFixed(2)} USD`;
-      return `${amount.toFixed(2)} USD`;
+    async function loadLatestReceipt() {
+      const status = document.getElementById("receipt-card-status");
+      const sheet = document.getElementById("receipt-card-sheet");
+      const empty = document.createElement("p");
+      empty.hidden = true;
+      status.className = "note";
+      status.textContent = "Reading the latest transaction.";
+      try {
+        const receipt = await readLatestReceipt();
+        if (!receipt) {
+          status.textContent = "No transaction yet.";
+          sheet.replaceChildren();
+          paintDev(null);
+          return;
+        }
+        const overLimit = Number(receipt.http_status) !== 200;
+        if (overLimit) {
+          status.textContent = "No receipt unless HTTP status is 200.";
+          sheet.replaceChildren();
+        } else {
+          status.textContent = receipt.status === "SUCCESS" ? "Latest transaction completed." : "Latest transaction declined.";
+          renderReceipt(sheet, empty, receipt);
+        }
+        paintDev(receipt);
+      } catch (err) {
+        status.textContent = "The latest transaction could not be read.";
+        status.className = "bad";
+        document.getElementById("card-status").textContent = "The latest transaction could not be read.";
+        document.getElementById("card-status").className = "bad";
+      }
     }
 
-    function fillRuleForm(rule) {
-      document.getElementById("rule-code").value = rule && rule.code ? rule.code : "";
-      document.getElementById("rule-sentence").value = rule && rule.sentence ? rule.sentence : "";
-      document.getElementById("rule-http").value = rule && rule.http_status ? String(rule.http_status) : "400";
-      document.getElementById("rule-log-field").value = rule && rule.log_field ? rule.log_field : "card";
-      const retry = rule && (rule.retry === "retryable" || rule.retry === "not_retryable") ? rule.retry : "not_retryable";
-      document.getElementById("rule-retry").value = retry;
-      const amount = rule && rule.amount_limit != null ? Number(rule.amount_limit) : LIMIT;
-      document.getElementById("rule-limit").value = Number.isFinite(amount) ? amount.toFixed(2) : LIMIT.toFixed(2);
-    }
-
-    function csvCell(value) {
-      const text = String(value ?? "");
-      if (/[",\n]/.test(text)) return `"${text.replaceAll('"', '""')}"`;
-      return text;
-    }
-
-    async function postRule(filename, text) {
-      return fetch("/rules", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename, text }),
-      });
+    function loadCard() {
+      loadLatestReceipt();
+      readLimit();
     }
 
     function applyLimit(value) {
       const amount = Number(value);
       limit = Number.isFinite(amount) && amount > 0 ? amount : LIMIT;
-      document.getElementById("limit-label").textContent = `Amount USD · Limit ${limit.toFixed(2)}`;
+      document.getElementById("limit-label").textContent = "Amount USD · Limit " + limit.toFixed(2);
+      const field = document.getElementById("amount-limit");
+      if (field) field.value = limit.toFixed(2);
     }
 
-    function ruleSnapshot(rule) {
-      if (!rule) return { ...NO_RULE, amount_limit: limitText(LIMIT) };
-      return {
-        filename: rule.filename || "(none)",
-        code: rule.code || "",
-        sentence: rule.sentence || "",
-        http_status: rule.http_status,
-        log_field: rule.log_field || "",
-        retry: rule.retry || "",
-        amount_limit: limitText(rule.amount_limit == null ? LIMIT : rule.amount_limit),
-      };
-    }
-
-    function showRuleDiff(before, after, hadRule) {
-      const box = document.getElementById("rule-diff");
-      const note = document.getElementById("rule-diff-note");
-      const rows = document.getElementById("rule-diff-rows");
-      const beforeHead = document.getElementById("rule-diff-before-head");
-      const left = ruleSnapshot(before);
-      const right = ruleSnapshot(after);
-      beforeHead.textContent = hadRule ? "Before" : "Before (no rule)";
-      const fields = [
-        ["File", "filename"],
-        ["Code", "code"],
-        ["Customer sentence", "sentence"],
-        ["HTTP status", "http_status"],
-        ["Log field", "log_field"],
-        ["Retry", "retry"],
-        ["Amount limit", "amount_limit"],
-      ];
-      let changed = 0;
-      rows.replaceChildren();
-      fields.forEach(([label, key]) => {
-        const oldValue = left[key] == null ? "" : String(left[key]);
-        const newValue = right[key] == null ? "" : String(right[key]);
-        const isChanged = oldValue !== newValue;
-        if (isChanged) changed += 1;
-        const row = document.createElement("div");
-        row.className = "diff-row";
-        const term = document.createElement("span");
-        term.className = "diff-label";
-        term.textContent = label;
-        const prev = document.createElement("span");
-        prev.className = "diff-col" + (isChanged ? " changed" : "");
-        prev.textContent = oldValue;
-        const next = document.createElement("span");
-        next.className = "diff-col" + (isChanged ? " changed" : "");
-        next.textContent = newValue;
-        row.append(term, prev, next);
-        rows.appendChild(row);
-      });
-      note.textContent = changed
-        ? `${changed} field${changed === 1 ? "" : "s"} changed. Unchanged fields stay the same color.`
-        : "No fields changed. The attached file matched the saved rule.";
-      box.hidden = false;
-    }
-
-    async function loadRule() {
-      const ticket = ++ruleLoad;
-      const status = document.getElementById("rule-status");
-      status.className = "note";
-      status.textContent = "Reading the institution rule.";
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-          const response = await fetch("/rules");
-          if (ticket !== ruleLoad) return;
-          if (response.status === 404) {
-            status.className = "note";
-            status.textContent = "No institution rule is saved.";
-            currentRule = null;
-            fillRuleForm(null);
-            applyLimit(LIMIT);
-            return;
-          }
-          if (!response.ok) throw new Error("HTTP " + response.status);
-          const rule = await response.json();
-          if (ticket !== ruleLoad) return;
-          currentRule = rule;
-          status.className = "note";
-          status.textContent = "Institution rule saved.";
-          fillRuleForm(rule);
-          applyLimit(rule.amount_limit);
-          return;
-        } catch (err) {
-          if (ticket !== ruleLoad) return;
-          await new Promise((r) => setTimeout(r, 400));
-        }
+    async function saveLimit() {
+      const field = document.getElementById("amount-limit");
+      const notice = document.getElementById("limit-msg");
+      const amount = Number(String(field.value || "").trim());
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) {
+        showNotice(notice, "Amount limit must be greater than 0 and at most 100000.", "bad");
+        return;
       }
-      if (ticket !== ruleLoad) return;
-      status.textContent = "The institution rule could not be read.";
-      status.className = "bad";
+      try {
+        const response = await fetch("/rules/limit", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount_limit: amount }),
+        });
+        if (!response.ok) {
+          showNotice(notice, "This limit was refused.", "bad");
+          return;
+        }
+        const rule = await response.json();
+        applyLimit(rule.amount_limit);
+        showNotice(notice, "Amount limit saved.", "saved");
+      } catch (err) {
+        showNotice(notice, "This limit was refused.", "bad");
+      }
+    }
+
+    async function readLimit() {
+      try {
+        const response = await fetch("/rules");
+        if (!response.ok) return;
+        const rule = await response.json();
+        applyLimit(rule.amount_limit);
+      } catch (err) {
+        applyLimit(LIMIT);
+      }
     }
 
     async function loadLog() {
@@ -837,6 +1176,9 @@
             item.className = "entry";
             const code = Number(row.http_status);
             const tone = statusClass(code);
+            const stamp = document.createElement("p");
+            stamp.className = "when";
+            stamp.textContent = when(row.created_at);
             const title = document.createElement("p");
             title.className = tone === "stop-num" ? "entry-title stop" : tone === "ok-num" ? "entry-title ok" : "entry-title";
             title.textContent = row.sentence || "";
@@ -848,7 +1190,7 @@
             http.className = tone;
             http.textContent = "HTTP " + row.http_status;
             meta.append(http, document.createTextNode(" · " + (row.retry === "retryable" ? "Retryable" : "Not retryable")));
-            item.append(title, meta);
+            item.append(stamp, title, meta);
             body.appendChild(item);
           });
           return;
@@ -878,7 +1220,10 @@
               const line = `${method.toUpperCase()} ${path}${summary ? " — " + summary : ""}`;
               if (hasPan(line)) return;
               const item = document.createElement("li");
-              item.textContent = line;
+              const verb = document.createElement("span");
+              verb.className = `verb-${method.toLowerCase()}`;
+              verb.textContent = method.toUpperCase();
+              item.append(verb, document.createTextNode(` ${path}${summary ? " — " + summary : ""}`));
               list.appendChild(item);
             });
           });
@@ -1087,82 +1432,147 @@
 
     function loadPanel(name) {
       if (name === "card") loadCard();
-      if (name === "rules") loadRule();
       if (name === "log") loadLog();
       if (name === "api") loadApi();
       if (name === "grafana") loadGrafana();
     }
 
-    function showResult(outcome) {
-      form.hidden = true;
-      result.hidden = false;
-      result.replaceChildren();
-      const eyebrow = document.createElement("div");
-      eyebrow.className = "eyebrow";
-      eyebrow.textContent = outcome.stop ? "Declined" : "Completed";
-      const sentence = document.createElement("p");
-      sentence.className = outcome.stop ? "sentence" : "sentence ok";
-      sentence.textContent = outcome.title || "";
-      const meta = document.createElement("p");
-      meta.className = "meta";
-      meta.textContent = outcome.meta || "";
-      result.append(eyebrow, sentence, meta);
-      if (outcome.retry) {
-        const back = document.createElement("button");
-        back.className = "ghost";
-        back.type = "button";
-        back.id = "back";
-        back.textContent = outcome.retry;
-        back.onclick = reset;
-        result.appendChild(back);
-      } else {
-        const back = document.createElement("button");
-        back.className = "ghost";
-        back.type = "button";
-        back.id = "return";
-        back.textContent = "Return";
-        back.onclick = reset;
-        result.appendChild(back);
-      }
-      openOps.disabled = false;
+    const LENGTH_WARNING = "The card number length is not valid.";
+
+    function blankField(input) {
+      return String(input.value || "").trim() === "";
     }
 
-    function reset() {
-      result.hidden = true;
-      result.innerHTML = "";
-      form.hidden = false;
+    function cardLengthBad() {
+      const pan = digits(cardInput.value);
+      return pan.length < 13 || pan.length > 19;
+    }
+
+    function amountReady() {
+      const amount = Number(amountInput.value);
+      return !blankField(amountInput) && Number.isFinite(amount) && amount > 0 && amount <= limit;
+    }
+
+    function paintRequired() {
+      const markCard = triedPay && cardLengthBad() && (blankField(amountInput) || amountReady());
+      [
+        [amountInput, "amount", blankField(amountInput)],
+        [cardInput, "card", cardLengthBad()],
+        [document.getElementById("cvc"), "cvc", blankField(document.getElementById("cvc"))],
+      ].forEach(([input, id, bad]) => {
+        const missing = triedPay && bad && (id !== "card" || markCard);
+        input.classList.toggle("invalid", missing);
+        const label = document.querySelector(`label[for="${id}"]`);
+        let star = label.querySelector(".req");
+        if (missing && !star) {
+          star = document.createElement("span");
+          star.className = "req";
+          star.setAttribute("aria-hidden", "true");
+          star.textContent = "*";
+          label.appendChild(star);
+        } else if (!missing && star) {
+          star.remove();
+        }
+      });
+      const line = document.getElementById("pay-line");
+      if (!cardLengthBad() && line.textContent === LENGTH_WARNING) showNotice(line, "");
+    }
+
+    let triedPay = false;
+    const noticeTimers = new WeakMap();
+
+    function showNotice(el, text, kind) {
+      const previous = noticeTimers.get(el);
+      if (previous) {
+        clearTimeout(previous.hide);
+        clearTimeout(previous.fade);
+        noticeTimers.delete(el);
+      }
+      el.textContent = text;
+      if (el.id === "pay-line") el.className = kind === "stop" ? "pay-line stop" : "pay-line";
+      else el.className = "note form-msg" + (kind ? " " + kind : "");
+      if (!text) return;
+      const token = {};
+      token.hide = setTimeout(() => {
+        if (noticeTimers.get(el) !== token) return;
+        el.classList.add("leaving");
+        token.fade = setTimeout(() => {
+          if (noticeTimers.get(el) !== token) return;
+          el.textContent = "";
+          el.classList.remove("leaving");
+          noticeTimers.delete(el);
+        }, 700);
+      }, 5000);
+      noticeTimers.set(el, token);
+    }
+
+    function showResult(outcome) {
+      const line = document.getElementById("pay-line");
+      showNotice(line, outcome.stop ? (outcome.title || "Declined.") : "Payment completed.", outcome.stop ? "stop" : "");
       go.disabled = false;
       openOps.disabled = false;
-      paint(1, 0, "");
+      const statement = document.getElementById("view-receipt");
+      const endSaleButton = document.getElementById("end-sale");
+      const httpCode = outcome.http
+        ? Number(String(outcome.http).replace(/[^\d]/g, ""))
+        : (outcome.stop ? 400 : 200);
+      if (httpCode !== 200) {
+        closeStatement();
+        statement.hidden = true;
+        endSaleButton.hidden = false;
+        endSaleButton.disabled = true;
+        issued = false;
+        return;
+      }
+      statement.hidden = false;
+      endSaleButton.hidden = false;
+      statement.disabled = false;
+      endSaleButton.disabled = false;
+      issued = true;
     }
 
     async function run() {
+      triedPay = true;
+      paintRequired();
+      const lengthBad = cardLengthBad() && (blankField(amountInput) || amountReady());
+      if (lengthBad) showNotice(document.getElementById("pay-line"), LENGTH_WARNING, "stop");
+      if (lengthBad && [amountInput, document.getElementById("cvc")].some(blankField)) return;
+      if ([amountInput, cardInput, document.getElementById("cvc")].some(blankField)) return;
       go.disabled = true;
       openOps.disabled = true;
+      document.getElementById("view-receipt").disabled = true;
+      document.getElementById("end-sale").disabled = true;
       const local = decide();
+      const pan = digits(cardInput.value);
       const pending = fetch("/authorizations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: Number(amountInput.value), card: digits(cardInput.value) }),
+        body: JSON.stringify({ amount: Number(amountInput.value), card: pan }),
       }).then(async (response) => {
         if (!response.ok) return null;
         return response.json();
       }).catch(() => null);
+      const platePending = savedDeclineCard(pan);
       const last = local.stop || 6;
       for (let step = 1; step <= last; step += 1) {
         paint(step, 0, "");
         await new Promise((r) => setTimeout(r, 420));
       }
-      const body = await pending;
-      const outcome = body ? outcomeFromBody(body) : local;
+      const [body, plate] = await Promise.all([pending, platePending]);
+      const outcome = body
+        ? outcomeFromBody(body, plate)
+        : (plate && local.stop === 5 ? outcomeFromPlate(plate, amountInput.value) : local);
       if (outcome.stop) paint(outcome.stop, outcome.stop, outcome.why);
       else paint(7, 0, "");
+      go.disabled = false;
       showResult(outcome);
+      if (!document.getElementById("slip").hidden) openReceipt();
+      if (!opsStage.hidden) loadLatestReceipt();
     }
 
     function showOps() {
-      checkout.hidden = true;
-      ops.hidden = false;
+      stage.hidden = true;
+      opsStage.hidden = false;
       openOps.hidden = true;
       const current = document.querySelector("button.tab.on");
       loadPanel(current ? current.dataset.tab : "card");
@@ -1170,8 +1580,8 @@
 
     function showCheckout() {
       stopBoard();
-      ops.hidden = true;
-      checkout.hidden = false;
+      opsStage.hidden = true;
+      stage.hidden = false;
       openOps.hidden = false;
     }
 
@@ -1185,162 +1595,111 @@
       loadPanel(button.dataset.tab);
     });
 
-    document.getElementById("card-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const saved = document.getElementById("card-save");
-      const payload = {
-        name: document.getElementById("plate-name").value,
-        user_facing_message: document.getElementById("plate-message").value,
-        http_status: Number(document.getElementById("plate-status").value),
-        log_fields: document.getElementById("plate-field").value,
-        retry_allowed: document.getElementById("plate-retry").value,
-      };
-      const joined = [payload.name, payload.user_facing_message, payload.log_fields, String(payload.http_status)].join(" ");
-      if (hasPan(joined)) {
-        saved.textContent = "This card was refused. It contains 13 or more consecutive digits.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      const response = await fetch("/plates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        saved.textContent = "This card was refused.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      await loadCard();
-      saved.textContent = "Saved. The next decline uses this card.";
-      saved.className = "form-msg saved";
-    });
-
     document.getElementById("audit-clear").onclick = () => {
       auditTrace = "";
       auditStatus = "";
       renderAudit();
     };
 
-    document.getElementById("rule-direct").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const saved = document.getElementById("rule-direct-save");
-      const code = document.getElementById("rule-code").value.trim();
-      const sentence = document.getElementById("rule-sentence").value.trim();
-      const httpStatus = document.getElementById("rule-http").value.trim() || "400";
-      const logField = document.getElementById("rule-log-field").value.trim() || "card";
-      const retry = document.getElementById("rule-retry").value;
-      const amount = document.getElementById("rule-limit").value.trim() || String(LIMIT);
-      const joined = [code, sentence, httpStatus, logField, amount].join(" ");
-      if (!code || !sentence) {
-        saved.textContent = "Institution rule and customer sentence are required.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      const statusCode = Number(httpStatus);
-      const limitValue = Number(amount);
-      if (!Number.isInteger(statusCode) || statusCode < 100 || statusCode > 599) {
-        saved.textContent = "HTTP status must be from 100 to 599.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      if (!Number.isFinite(limitValue) || limitValue <= 0 || limitValue > 100000) {
-        saved.textContent = "Amount limit must be greater than 0 and at most 100000.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      if (hasPan(joined)) {
-        saved.textContent = "This rule was refused. It contains 13 or more consecutive digits.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      const text = [
-        "code,sentence,http_status,log_field,retry,amount_limit",
-        [code, sentence, statusCode, logField, retry, limitValue.toFixed(2)].map(csvCell).join(","),
-      ].join("\n");
-      const before = currentRule;
-      const hadRule = !!currentRule;
-      const response = await postRule("direct-form.csv", text);
-      if (!response.ok) {
-        saved.textContent = "This rule was refused.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      const after = await response.json();
-      await loadRule();
-      showRuleDiff(before, after, hadRule);
-      applyLimit(after.amount_limit);
-      saved.textContent = "Institution rule saved.";
-      saved.className = "form-msg saved";
-    });
-
-    document.getElementById("rule-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const saved = document.getElementById("rule-save");
-      const input = document.getElementById("rule-file");
-      const diff = document.getElementById("rule-diff");
-      const file = input.files && input.files[0];
-      if (!file) {
-        saved.textContent = "Choose a file first.";
-        saved.className = "form-msg note";
-        return;
-      }
-      const text = await file.text();
-      if (hasPan(file.name) || hasPan(text)) {
-        ruleLoad += 1;
-        input.value = "";
-        diff.hidden = true;
-        saved.textContent = "This file was refused. It contains 13 or more consecutive digits.";
-        saved.className = "form-msg bad";
-        return;
-      }
-      const before = currentRule;
-      const hadRule = !!currentRule;
-      const response = await postRule(file.name, text);
-      if (!response.ok) {
-        ruleLoad += 1;
-        input.value = "";
-        diff.hidden = true;
-        let message = "This file was refused.";
-        try {
-          const data = await response.json();
-          if (data.detail === "rejected: 13 or more consecutive digits") {
-            message = "This file was refused. It contains 13 or more consecutive digits.";
-          } else if (data.detail === "empty file" || data.detail === "rule file has no sentence") {
-            message = "This file was refused. It has no institution sentence.";
-          }
-        } catch (err) {
-          message = "This file was refused.";
-        }
-        saved.textContent = message;
-        saved.className = "form-msg bad";
-        return;
-      }
-      const after = await response.json();
-      input.value = "";
-      await loadRule();
-      showRuleDiff(before, after, hadRule);
-      applyLimit(after.amount_limit);
-      saved.textContent = "Saved. Other cards now use this rule.";
-      saved.className = "form-msg saved";
-    });
-
     function clearEntry() {
       amountInput.value = "";
       cardInput.value = "";
+      cvcInput.value = "";
+      cardSecret.reset();
+      cvcSecret.reset();
       display.textContent = "0.00";
+      showNotice(document.getElementById("pay-line"), "");
+      triedPay = false;
+      paintRequired();
     }
 
     amountInput.addEventListener("input", () => {
       const n = Number(amountInput.value);
       display.textContent = Number.isFinite(n) ? n.toFixed(2) : amountInput.value;
+      paintRequired();
     });
+    const eyeOpen = document.getElementById("card-eye").innerHTML;
+    const eyeOff = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a18.5 18.5 0 0 1-4.1 4.6"></path><path d="M6.1 6.7C3.7 8.3 2 12 2 12a18.8 18.8 0 0 0 6.2 5.4"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>`;
+    function bindSecret(input, button, showLabel, hideLabel) {
+      const mirror = input.parentElement.querySelector(".mask-mirror");
+      const state = { prev: input.value, peekAt: -1, timer: 0 };
+      function paint() {
+        const masked = input.classList.contains("masked");
+        button.setAttribute("aria-pressed", masked ? "false" : "true");
+        button.setAttribute("aria-label", masked ? showLabel : hideLabel);
+        button.innerHTML = masked ? eyeOpen : eyeOff;
+        mirror.hidden = !masked;
+        if (!masked) {
+          mirror.replaceChildren();
+          return;
+        }
+        const frag = document.createDocumentFragment();
+        const value = input.value;
+        for (let n = 0; n < value.length; n += 1) {
+          if (n === state.peekAt) {
+            frag.appendChild(document.createTextNode(value[n]));
+          } else {
+            const dot = document.createElement("span");
+            dot.className = "dot";
+            dot.textContent = "•";
+            frag.appendChild(dot);
+          }
+        }
+        mirror.replaceChildren(frag);
+      }
+      input.addEventListener("input", () => {
+        const next = input.value;
+        if (input.classList.contains("masked")) {
+          const prev = state.prev;
+          let same = 0;
+          const limit = Math.min(prev.length, next.length);
+          while (same < limit && prev[same] === next[same]) same += 1;
+          const added = next.length - prev.length;
+          state.peekAt = added > 0 ? same + added - 1 : -1;
+          clearTimeout(state.timer);
+          if (state.peekAt >= 0) {
+            state.timer = setTimeout(() => {
+              state.peekAt = -1;
+              paint();
+            }, 700);
+          }
+        }
+        state.prev = next;
+        paint();
+        paintRequired();
+      });
+      button.onclick = () => {
+        input.classList.toggle("masked");
+        state.peekAt = -1;
+        clearTimeout(state.timer);
+        paint();
+      };
+      paint();
+      return {
+        reset() {
+          state.prev = input.value;
+          state.peekAt = -1;
+          clearTimeout(state.timer);
+          paint();
+        },
+      };
+    }
+    const cardSecret = bindSecret(cardInput, document.getElementById("card-eye"), "Show card number", "Hide card number");
+    const cvcInput = document.getElementById("cvc");
+    const cvcSecret = bindSecret(cvcInput, document.getElementById("cvc-eye"), "Show CVC", "Hide CVC");
     go.onclick = run;
     document.getElementById("clear").onclick = clearEntry;
+    document.getElementById("end-sale").onclick = endSale;
+    document.getElementById("view-receipt").onclick = openReceipt;
+    document.getElementById("slip-close").onclick = closeStatement;
+    document.getElementById("slip-print").onclick = () => {
+      if (slipCopy) window.print();
+    };
     openOps.onclick = showOps;
     document.getElementById("close-ops").onclick = showCheckout;
+    document.getElementById("set-limit").onclick = saveLimit;
     paint(1, 0, "");
-    loadRule();
+    readLimit();
   </script>
 </body>
 </html>

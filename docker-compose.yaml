@@ -9,11 +9,46 @@ services:
       - "5433:5432"
     volumes:
       - E:/IT_SPACES/AI/Projects/aidt/signet/docker/pgdata:/var/lib/postgresql/data
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - E:/IT_SPACES/AI/Projects/aidt/signet/observability/otel-collector.yaml:/etc/otel/config.yaml
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    volumes:
+      - E:/IT_SPACES/AI/Projects/aidt/signet/observability/prometheus.yml:/etc/prometheus/prometheus.yml
+  loki:
+    image: grafana/loki:3.2.0
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+  tempo:
+    image: grafana/tempo:2.6.1
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    volumes:
+      - E:/IT_SPACES/AI/Projects/aidt/signet/observability/tempo.yaml:/etc/tempo/tempo.yaml
+  grafana:
+    image: grafana/grafana:11.3.0
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: signet
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_COOKIE_SAMESITE: disabled
+      GF_DATABASE_WAL: "true"
+    volumes:
+      - E:/IT_SPACES/AI/Projects/aidt/signet/observability/grafana/provisioning:/etc/grafana/provisioning
   app:
     build: .
     ports:
       - "8001:8001"
     environment:
       DATABASE_URL: postgresql://signet:signet@postgres:5432/signet
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    volumes:
+      - E:/IT_SPACES/AI/Projects/aidt/signet/samples:/app/samples
     depends_on:
       - postgres
+      - otel-collector

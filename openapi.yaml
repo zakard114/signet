@@ -41,6 +41,41 @@ paths:
                     enum: [retryable, not_retryable]
                   amount:
                     type: number
+  /authorizations/latest:
+    get:
+      summary: Read the latest transaction receipt
+      responses:
+        "200":
+          description: The newest authorization, approved or declined
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, masked_card, trace_id, created_at, http_status, sentence, log_field, retry]
+                properties:
+                  status:
+                    type: string
+                    enum: [SUCCESS, DECLINED]
+                  amount:
+                    type: number
+                    nullable: true
+                  masked_card:
+                    type: string
+                  trace_id:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                  http_status:
+                    type: integer
+                  sentence:
+                    type: string
+                  log_field:
+                    type: string
+                  retry:
+                    type: string
+        "404":
+          description: No authorization yet
   /plates:
     post:
       summary: Overwrite the one decline card
@@ -299,3 +334,60 @@ paths:
                 properties:
                   detail:
                     type: string
+  /rules/limit:
+    put:
+      summary: Set the payment amount ceiling
+      responses:
+        "200":
+          description: The ceiling used by amount check
+        "400":
+          description: Rejected limit
+  /rules/documents:
+    get:
+      summary: Read saved institution rule documents
+      responses:
+        "200":
+          description: Documents newest first.
+  /rules/documents/{doc_id}/use:
+    post:
+      summary: Reference one saved institution rule
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: That document is now in use
+        "404":
+          description: No such document
+  /rules/documents/{doc_id}:
+    put:
+      summary: Edit one saved institution rule
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The same document, updated
+        "400":
+          description: Rejected text, status, or limit
+        "404":
+          description: No such document
+    delete:
+      summary: Delete one saved institution rule
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: No such document

@@ -1,23 +1,21 @@
-# Signet 로드맵
+# Signet roadmap
 
-한 게이트가 끝나기 전에 다음 게이트의 구현 지침을 쓰지 않는다.
-패킷 서두에는 그 게이트의 업계 이름 하나와, 이번 화면에서 그 말이 뜻하는 한 문장만 둔다. 그 다음에 클릭이 이어진다.
-용어 목록 전체를 스킬에 넣지 않는다. 이 표가 그 목록이다.
+Do not write the next gate's build notes before the current gate is finished.
 
-| # | 업계 이름 | 이번 화면에서 | 끝나면 |
-|---|-----------|----------------|--------|
-| 1/11 | Problem Statement | 고객은 결제 여섯 단계를 보고, 운영자는 Ops 화면에서 카드 한 장과 규칙을 본다. | 문제와 하지 않을 일이 SPEC에 고정돼 있다. 완료. |
-| 2/11 | UI Prototyping | 서버 없이 결제 화면과, Ops 버튼을 누르면 같은 테마로 바뀌는 운영 화면만 본다. | 두 화면이 미리보기에 있고, 결과는 모달이 아니다. 완료. |
-| 3/11 | API Contract | 승인 POST와 Fault Plate `GET /plates`가 화면과 서버의 계약이다. | `openapi.yaml`에 그 호출만 있다. 완료. |
-| 4/11 | Backend Implementation | 계약대로 승인하거나, 멈춘 단계와 문장을 돌려준다. | 한도, 자릿수, 승인 카드, 거절 카드가 응답으로 갈린다. 완료. |
-| 5/11 | Data Persistence | 결제 기록과 거절 카드 한 장이 Postgres에 남고, 그 한 장을 덮어 쓴다. | 재시작 후에도 기록과 카드 문장이 남는다. Signet 배포는 하나다. 완료. |
-| 6/11 | Automated Testing | 승인 한 번과 거절 한 번을 코드로 확인한다. | 유닛, 통합, 화면 테스트가 그 두 길을 통과한다. 완료. |
-| 7/11 | Containerization | 화면과 서버를 이미지 하나에 담고, Compose가 Postgres를 같이 띄운다. | 로컬 Compose로 결제 화면이 열린다. 완료. |
-| 8/11 | Deployment | `main`은 개발 주소, 프로덕션은 사람이 실행한다. | 공개 주소가 응답하고, 이전 이미지로 되돌리는 문장이 있다. |
-| 9/11 | Observability | 한 결제의 숫자, 로그, 구간이 같은 추적 번호로 Grafana에 모인다. | 로컬 Collector, Prometheus, Loki, Tempo가 뜨고, 카드 번호는 신호에 없다. |
-| 10/11 | Agentic Extension | 스킬, 서브에이전트, MCP, 훅, 권한 노트가 이 저장소에 있다. | Fault Plate 팩을 복사하지 않은 확장 팩이 있다. |
-| 11/11 | Security Review | 카드 번호 전체가 저장, 로그, 텔레메트리에 없는지 확인한다. | 검토 메모에 그 결과와 한계가 적혀 있다. |
+| # | Name | On this screen | Done when |
+|---|------|----------------|-----------|
+| 1/11 | Problem Statement | The shopper sees six payment steps. The operator sees Ops. | The problem and the exclusions are fixed in SPEC. Done. |
+| 2/11 | UI Prototyping | Checkout, and Ops in the same theme, with no server required for the first preview. | Both screens exist. The result is not a modal. Done. |
+| 3/11 | API Contract | Authorization POST and the decline-plate GET are the contract. | Those calls are in `openapi.yaml`. Done. |
+| 4/11 | Backend Implementation | Authorize, or return the stopped step and sentence. | Ceiling, length, approval card, and decline card each return their own response. Done. |
+| 5/11 | Data Persistence | The authorization log and one decline plate stay in Postgres. | They survive a restart. One Signet deploy. Done. |
+| 6/11 | Automated Testing | One approval and one decline, checked in code. | Unit, integration, and screen tests pass both paths. Done. |
+| 7/11 | Containerization | App and preview in one image. Compose starts Postgres. | Local Compose opens the checkout. Done. |
+| 8/11 | Deployment | `main` deploys the development URL. Production is started by a person. | The public URL responds. Rollback is written down. Done. |
+| 9/11 | Observability | One payment's metrics, logs, and spans share a trace id in local Grafana. | Collector, Prometheus, Loki, and Tempo run locally. The card number is not in the signals. Done. |
+| 10/11 | Agentic Extension | Skill, subagent, MCP, hook, and a permissions note live in this repo. | The pack is not a copy of Fault Plate. Done. |
+| 11/11 | Security Review | Confirm the full card number is absent from storage, logs, and telemetry. | The review note records the result and its limits. Done. |
 
-하지 않는 것: Kestra, AWS, policy-refund와 붙이기, Fault Plate를 두 번째 배포로 남기기, 고객 화면 위의 제품 탭 줄, 네온, 고객 화면의 파일 올리기, 게이트를 건너뛰기. 카드 한 장의 코드는 이전 프로젝트에서 가져온다. Ops 안에서는 카드, 규칙 파일, 기록, API, Grafana 탭을 둔다.
+Not in this project: Kestra, AWS, joining policy-refund, a second Fault Plate deploy, a product tab row on the checkout, neon, a customer file upload, skipping a gate.
 
-호출: 이 표의 한 줄을 진행할 때 `게이트 패킷`이라고 하면 그 번호만 연다. 프로젝트 폴더를 연다고 표 전체가 실행되지는 않는다.
+Ops tabs are Inspector, Log, API, and Grafana. Grafana stays on this PC.

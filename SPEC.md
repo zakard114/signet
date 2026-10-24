@@ -1,71 +1,43 @@
 # Signet
 
-## 문제
+## Problem
 
-고객은 금액과 카드만 넣고, 여섯 단계 중 어디서 멈췄는지와 다음 행동을 그 자리에서 봐야 한다. 운영자는 같은 테마의 Ops 화면에서 승인 실패 카드 한 장과 그 밖의 거절 규칙만 고친다. 카드 번호 전체는 저장하지 않는다.
+A shopper enters an amount and a card number and must see which of six steps stopped, the sentence, and the next action. An operator uses the same theme to inspect that payment and to set the amount ceiling. The full card number is never stored.
 
-앱은 하나다. 처음 보이는 것은 결제 화면이다. 금액과 카드 번호를 넣으면 여섯 단계가 진행되고, 승인되거나 한 단계에서 멈춘다. 멈춘 이유의 문장은 그 자리 오른쪽에 바로 나온다.
+The app is one checkout. The first screen is the payment. Ops replaces that screen in the same window. Ops tabs are Inspector, Log, API, and Grafana. One tab is open at a time. There is no tab row on the customer screen.
 
-제품 이름은 Signet이다. 폴더 이름은 `signet`이다.
+## Customer screen
 
-이전 Fault Plate는 Signet으로 교체한다. 카드 한 장의 모델과 저장·조회 코드는 그 프로젝트의 것을 Signet으로 가져와 Postgres에 둔다. 실행 중인 웹 배포는 Signet 하나다. policy-refund와는 붙이지 않는다.
+Dark field, one panel. Six steps on the left, payment on the right.
 
-## 고객 화면
+1. Intake.
+2. Amount check. Greater than 0 and at most the stored ceiling. The default is 500.00 USD.
+3. Card check. 13 to 19 digits.
+4. Authorization request. Only a payment that passed the earlier checks is sent.
+5. Authorization decision.
+6. Next action. Completed, or the edit the decision allows.
 
-어두운 바탕, 가운데 패널 하나다. 왼쪽은 여섯 단계, 오른쪽은 결제다. 네온과 위쪽 탭 줄은 없다.
+Authorize walks the steps. A pass shows `Payment completed.` above the buttons. Statement appears on the right of that line only after HTTP status 200 in this page session. Opening it shifts the payment left and shows a receipt titled `Receipt`. The kicker is Completed or Declined. The fields are amount, masked card, trace id, and time. Actions are Print and Close. Close hides the panel and unlocks the fields. Statement stays. End sits beside AC and can be pressed only when a statement exists. End closes the panel, unlocks the fields, and retires Statement. AC, or clearing the fields, does not remove Statement or close an open receipt. Short notices such as `Payment completed.` and `Amount limit saved.` fade out after 5 seconds. While the receipt is open, the amount, card, and CVC are locked and dimmed. Opening the receipt does not add a horizontal scrollbar. Print does not include the full card number.
 
-1. 접수. 금액과 카드 번호를 받는다.
-2. 금액 검사. 0보다 크고 500.00 USD 이하인지 본다.
-3. 카드 검사. 번호 자릿수가 13자리에서 19자리인지 본다.
-4. 승인 요청. 앞의 검사를 통과한 건만 올라간다.
-5. 승인 판정. 카드 번호로 승인인지 거절인지 가른다.
-6. 다음 행동. 결제 완료이거나, 카드가 허용한 수정뿐이다.
+The card field and the CVC field are masked. The character just typed stays visible briefly, then masks. An eye on the right of each field reveals that field.
 
-끝난 단계는 흐리게 남고, 지금 단계만 따뜻한 색으로 켜진다. 거절은 붉은색, 승인 완료는 옅은 녹색이다. 승인 요청을 누르면 단계가 하나씩 켜진 뒤 결과가 나온다. 결제 결과는 오른쪽 자리를 바꿔 보여 준다. 새로고침도 없고, 고객 문장을 모달로 띄우지 않는다.
+Empty amount, card, or CVC does not start authorization. Only then does that field get a red border and a red star. A card number outside 13 to 19 digits does the same, and `The card number length is not valid.` appears above Authorize.
 
-기준은 이렇다.
-
-- 금액이 한도 안이고 카드 번호가 `4242424242424242`이면 결제 완료와 금액이 나온다.
-- 금액 한도의 기본은 500.00 USD다. 저장된 기관 규칙에 `amount_limit`가 있으면 그 값이 한도다. 한도를 넘으면 2단계에서 멈추고, 남은 행동은 금액 수정뿐이다.
-- 자릿수가 맞지 않으면 3단계에서 멈추고, 남은 행동은 카드 수정뿐이다.
-- 카드 번호가 `4000000000000002`이면 5단계에서 멈춘다. 문장, HTTP 상태, 로그 필드, 재시도 여부는 Signet에 저장된 거절 카드 한 장에서 온다. 재시도 불가면 버튼은 없다.
-- 그 밖의 정상 자릿수 카드는 Ops에 넣어 둔 규칙이 있으면 그 문장을 보여주고, 없으면 규칙이 없다고만 보여 준다. 고객에게 파일 올리기 버튼은 없다.
-
-시연용 버튼은 고객 화면에 넣지 않는다. 카드 번호 전체는 저장하지 않고, 화면과 기록과 텔레메트리에 남기지 않는다.
+The designated approval card, under the ceiling, completes. The designated decline card stops at step 5. Its sentence, HTTP status, log field, and retry come from the one stored decline plate. Any other card of valid length uses the stored institution sentence when one exists, and otherwise says there is no decline rule. The customer has no file upload.
 
 ## Ops
 
-고객 화면 오른쪽 위에는 Ops 버튼 하나만 고정돼 있다. 결제 애니메이션이 도는 동안에는 그 버튼이 꺼져 있다.
+Ops is one button at the top right of the checkout. It is disabled while the payment animation runs.
 
-Ops를 누르면 브라우저를 새로 열지 않는다. 같은 어두운 테마 안에서 작업 영역 전체가 결제 화면에서 Ops 화면으로 바뀐다. 그 화면에는 여섯 단계 결제가 없고, 결제로 돌아가는 컨트롤이 있다. Ops 위쪽에는 탭이 있다. 카드, 규칙 파일, 기록, API, Grafana다. 한 번에 그 중 하나만 연다. 고객 화면 위에는 이 탭 줄을 두지 않는다. 네온은 쓰지 않는다. 상태 숫자는 거절이면 붉은색, 정상이면 옅은 녹색이고, 보고 있는 탭은 따뜻한 색이다.
+- Inspector. A statement only when the latest transaction HTTP status is 200. Otherwise the statement is empty. HTTP 200 is green. Payment detail shows the recorded sentence, HTTP status, log field, and retry. After Payment detail ends, the amount ceiling sits at the bottom. The stored value is the institution `amount_limit`. The default is 500. This tab does not edit the decline plate or the institution sentence.
+- Log. `GET /logs` returns id, stop_step, sentence, http_status, log_field, retry, amount, and created_at from `authorization_log`. There is no card column.
+- API. Live OpenAPI routes. Local docs are `/docs`. The contract file is `openapi.yaml`.
+- Grafana. Request count, HTTP error rate, average latency, request rate by status, P95 and P99, and an audit log with trace ids. Success is green. An HTTP decline is red. The same log also goes to local Loki. Grafana is not deployed to the public Render service.
 
-채워진 탭은 이렇다.
+## Out of scope
 
-- 카드. `GET /plates`로 거절 카드 한 장을 읽어 이름, 고객에게 보일 문장, HTTP 상태, 로그 필드, 재시도 여부를 보여 준다. 같은 칸에서 고치면 `POST /plates`가 그 한 장을 덮는다. 카드 번호 전체는 칸도 없고, 문장에 숫자가 13자리 이상 이어지면 저장하지 않는다.
-- 규칙. Rule 탭 위에는 기관 규칙, 고객 문장, HTTP 상태, 로그 필드, 재시도, 금액 한도를 직접 고치는 칸이 있다. Set rule을 누르면 아래에 `Institution rule saved.`가 뜬다. 아래에는 CSV를 올리는 칸이 있고, 첫 데이터 행이 규칙이다. 한도 칸이 없으면 500이다. 저장 뒤에는 이전 값과 새 값을 칸마다 대조한다. 글에 숫자가 13자리 이상 이어지면 그 입력은 거절하고 저장하지 않는다. 카드 번호 전체는 저장하지 않는다. 승인 실패로 이미 정해 둔 카드는 거절 카드 한 장을 쓰고, 그 밖의 정상 자릿수 카드는 이 규칙이 있으면 그 문장을 보여 준다. 규칙이 없으면 규칙이 없다고만 보여 준다. 환불 탭은 없다. 예제 파일은 `samples/institution-limit.csv`와 `samples/institution-higher.csv`다.
-- 기록. `GET /logs`가 `authorization_log`의 id, stop_step, sentence, http_status, log_field, retry, amount, created_at만 돌려 화면에 보여 준다. 카드 열은 없다.
-- API. 이 앱의 살아 있는 OpenAPI 경로를 보여 준다. 로컬 문서는 `/docs`다. 시험용 카드 번호는 적지 않는다. 계약 파일은 `openapi.yaml`이다.
-- Grafana. 탭 안에 총 요청 수, HTTP 에러율, 평균 지연, 상태별 초당 요청 그래프, P95와 P99, 추적 번호가 있는 감사 로그가 있다. 성공은 녹색, HTTP 거절은 붉은색이다. 로그의 상태와 추적 번호를 누르면 그 줄만 남는다. 같은 요청 기록은 이 PC의 Loki로도 나간다. Grafana 메뉴와 Grafana 서버는 공개 Render 서비스로 올리지 않는다.
-- 기록의 amount는 그 요청에 넣은 금액이다. 카드 번호는 기록에 없다.
+No shared editing, refunds, ledgers, loan advice, lab uploads, or supplement checks. No product tab row on the customer screen. No AWS.
 
-## 레슨에서 화면 뒤에 두는 것
+## Files
 
-코드를 쓰기 전에 수락 기준과 하지 않을 일을 명세에 적는다. `AGENTS.md`는 제품, 구현, QA 역할과 작업 목록을 가리킨다. AI에게 맥락을 준 방법, 일을 나눈 방법, 검토와 확인은 영어로 남긴다.
-
-화면과 서버는 하나의 OpenAPI 계약을 쓴다. 결제 기록은 Postgres에 남는다. 로컬에서는 Compose가 그 데이터베이스를 같이 띄운다. 통합 테스트는 그 데이터베이스를 치고, 화면 테스트는 승인 한 번과 거절 한 번을 본다.
-
-프론트와 백엔드는 이미지 하나에 담는다. PR에서는 검사, 유닛 테스트, 통합 테스트, 이미지 빌드가 돈다. `main`은 개발 주소로 올라가고, 프로덕션은 사람이 실행한다. 배포 뒤에는 공개 주소가 응답하는지 확인하고, 이전 이미지로 되돌리는 방법을 문서에 적는다.
-
-앱은 OpenTelemetry로 숫자, 로그, 구간을 보낸다. Collector가 Prometheus, Loki, Tempo로 나눈다. 한 결제는 같은 추적 번호를 쓴다. 카드 번호는 이 신호에 넣지 않는다. 이 스택은 Compose로 로컬에서 뜬다. 무료 공개 서버 한 대에 Grafana까지 올리지는 않는다. Ops의 Grafana는 그 Compose 화면을 연다.
-
-Grafana 알림은 승인 거절이 이어지거나 Fault Plate 카드가 없을 때 뜬다. 온콜 에이전트는 그 알림에 깨어 허용된 일만 한다. 카드가 비어 있으면 정해 둔 문장으로 다음 거절을 보여주고, 회복됐는지 확인한 뒤 그 이력을 남긴다. 배포 권한은 주지 않는다. Semgrep은 CI에서 코드를 검사한다.
-
-스킬, 서브에이전트, MCP, 훅, 커스텀 에이전트, 권한 노트는 Signet 저장소에 둔다. Fault Plate 파일을 복사해 오지 않는다.
-
-## 하지 않는 것
-
-실시간 공동 편집, 환불 답변, 가계부, 대출 상담, 실험 성적서 업로드, 보충제 검증 화면처럼 칸을 여러 장 두는 일은 하지 않는다. 고객 화면 위에 제품 탭 줄을 두지 않는다. AWS는 쓰지 않는다.
-
-## 지금 파일
-
-미리보기는 `preview/index.html`이다. 고객 흐름에는 시연 버튼이 없고, 규칙 파일은 Ops 탭에 있다. Fault Plate는 호출하지 않는다. Postgres와 텔레메트리 스택은 Compose로 로컬에서 뜬다.
+The preview is `preview/index.html`. The customer flow has no demo buttons. The amount ceiling is edited in Inspector. There is no Ops screen for the institution sentence. Postgres and the telemetry stack run locally with Compose.
