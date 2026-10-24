@@ -1,51 +1,64 @@
 # Signet
 
-![Signet checkout and operations console](docs/signet-gateway.jpg)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![Postgres](https://img.shields.io/badge/Postgres-4169E1?logo=postgresql&logoColor=white) ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white) ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
 
-**E-commerce payment gateway, with the operations console on the same screen.** A shopper enters an amount and a card number. Signet walks the payment through six steps: Intake, amount ceiling, card length, authorization request, decision, and next action. Success issues a receipt with a trace id. The full card number is never stored and never returned. The decision runs inside this service.
+![Signet gateway](docs/signet-gateway.jpg)
 
-**Public app:** https://signet-3oz8.onrender.com  
-**Local app:** http://127.0.0.1:8001/  
-**Grafana (this PC only):** http://127.0.0.1:3001
+**An e-commerce payment gateway, with the operations console beside it.**
 
-`main` auto-deploys the Render development service. Production is a manual deploy in the Render dashboard. Grafana is not on the public service.
-
-Ops tabs: **Inspector · Log · API · Grafana**.
-
-## Checkout
-
-A checkout has to stop in a definite place. The amount can be over the ceiling. The card number can be the wrong length. One card is accepted. One card is declined from a stored plate. Every other valid card receives one stored institution sentence, or a plain "no rule" sentence when none is stored. The shopper sees the sentence and the next action on the same screen.
-
-Operators watch the same payment from Ops. Inspector shows the latest statement, the payment detail, and the amount ceiling at the bottom. Log shows the authorization rows. API shows the live routes. Grafana, on this PC only, shows request rate and latency. Those four views sit beside the checkout.
+**Public service:** https://signet-3oz8.onrender.com  
+**Local app:** http://127.0.0.1:8001/
 
 ## Table of contents
 
-- [Checkout](#checkout)
-- [Six steps](#six-steps)
-- [Receipt](#receipt)
-- [Operations console](#operations-console)
-- [Run locally](#run-locally)
-- [Public service](#public-service)
-- [Rollback](#rollback)
+- [Overview](#overview)
+- [Tech stack and architecture](#tech-stack-and-architecture)
+- [Core features](#core-features)
+- [Quick start](#quick-start)
+- [Deployment](#deployment)
 
 ---
 
-## Six steps
+## Overview
 
-1. **Intake.** Amount and card number.
-2. **Amount ceiling.** Greater than 0 and at most the stored ceiling. The default ceiling is 500.00 USD.
-3. **Card length.** 13 to 19 digits.
-4. **Authorization request.**
-5. **Decision.** Runs inside this service.
-6. **Next action.** Completed, or the edit the decision allows.
+A shopper enters an amount and a card number. Signet runs that payment through a six-step pipeline: Intake, amount ceiling, card length, authorization request, decision, and next action. A successful payment issues a receipt with a trace id. The full card number is never stored and never returned. The decision runs inside this service.
 
-CVC is collected on the form and is not sent, stored, logged, or printed.
+The amount must be greater than 0 and at most the stored ceiling. The default ceiling is 500.00 USD. The card number must be 13 to 19 digits. CVC is collected on the form and is not sent, stored, logged, or printed.
+
+One card is accepted. One card is declined from a stored plate. Every other valid card receives one stored institution sentence, or a plain "no rule" sentence when none is stored. The shopper sees that sentence and the next action on the same screen.
 
 [↑ Contents](#table-of-contents)
 
 ---
 
-## Receipt
+## Tech stack and architecture
+
+| Piece | Role |
+| --- | --- |
+| FastAPI | Checkout, the six-step pipeline, and the operations routes |
+| Postgres | Payments, the amount ceiling, and the stored plate |
+| OpenTelemetry | Request traces and metrics |
+| Grafana | Local dashboards for request rate and latency |
+| Docker | The app, Postgres, and the local observability stack |
+
+Grafana runs on this PC only, at http://127.0.0.1:3001. It is not part of the public service.
+
+Intake takes the amount and the card number. The ceiling and length steps stop a payment that cannot proceed. Authorization request and decision run in this service. Next action is completed, or the edit the decision allows.
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Core features
+
+Ops sits beside the checkout. The tabs are Inspector, Log, API, and Grafana.
+
+| Tab | What it shows |
+| --- | --- |
+| Inspector | The latest statement, the payment detail, and the amount ceiling at the bottom. Set limit writes the ceiling used by the amount step. There is no screen for editing institution sentences. |
+| Log | Authorization rows. No card column. |
+| API | Live routes and `/docs`. |
+| Grafana | Local only, at http://127.0.0.1:3001. It is not part of the public service. |
 
 A completed payment can be opened as a receipt. The receipt shows the amount, a masked card, the trace id, and the time. Print and Close are the only receipt actions. Close does not discard the statement. End, beside AC, does.
 
@@ -53,24 +66,9 @@ A completed payment can be opened as a receipt. The receipt shows the amount, a 
 
 ---
 
-## Operations console
+## Quick start
 
-Open Ops on the checkout. The tabs are Inspector, Log, API, and Grafana.
-
-| Tab | What it shows |
-| --- | --- |
-| Inspector | The latest statement, then the payment detail, then the amount ceiling at the bottom. Set limit writes the ceiling used by the amount step. There is no screen for editing institution sentences. |
-| Log | Authorization rows. No card column. |
-| API | Live routes and `/docs`. |
-| Grafana | Local only, at http://127.0.0.1:3001. It is not part of the public service. |
-
-[↑ Contents](#table-of-contents)
-
----
-
-## Run locally
-
-```
+```bash
 docker compose -f docker-compose.yaml up -d --build
 ```
 
@@ -88,24 +86,20 @@ Postgres is on host port 5433. The app listens on 8001.
 
 ---
 
-## Public service
+## Deployment
 
-https://signet-3oz8.onrender.com
+Public service: https://signet-3oz8.onrender.com
 
-Render web service, Docker, branch `main`, plus Render Postgres. Set `DATABASE_URL` to the Render Postgres connection string. `main` auto-deploys the development service. Production is a manual deploy in the Render dashboard.
+`main` auto-deploys the Render development service. Production is a manual deploy in the Render dashboard. The service is a Render web service on Docker, branch `main`, plus Render Postgres. Set `DATABASE_URL` to the Render Postgres connection string.
 
 The image listens on Render's `PORT`:
 
-```
+```text
 uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001}
 ```
 
 Grafana and the local agent pack are not deployed there.
 
+To roll back, keep the previous deploy. In the Render service, open Events or Deploys, choose the earlier successful deploy, and roll back. The previous image serves again. Do not delete that older deploy until the new one is confirmed.
+
 [↑ Contents](#table-of-contents)
-
----
-
-## Rollback
-
-Keep the previous deploy. In the Render service, open Events or Deploys, choose the earlier successful deploy, and roll back. The previous image serves again. Do not delete that older deploy until the new one is confirmed.
