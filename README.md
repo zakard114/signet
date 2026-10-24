@@ -361,21 +361,35 @@ AGENTS.md             # What the local agent pack may do
 
 ## Screenshots
 
-The picture at the top of this page is a campaign still: a shopper at a dark counter, brass light, the card only an edge. It is not a screenshot of the product. The architecture diagram is [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg). This repo does not ship a gallery of Grafana or Render screenshots. The live pages are the public service and, on this PC, Compose.
+No capture of this app is in the repository. The picture at the top of the page is a campaign still. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram. Neither file is a screenshot, and this section does not use them as one.
 
-### Public checkout
+Searched, and none of these held a capture of the checkout, the receipt, Inspector, Log, API, or Grafana:
 
-https://signet-3oz8.onrender.com
+- `C:\Users\HP EliteBook\.cursor\projects\e-IT-SPACES-AI-Projects-aidt-signet\assets\` — only generated files (`signet-architecture.jpg`, `signet-gateway-hero.jpg`, `signet-gateway.jpg`)
+- `C:\Users\HP EliteBook\.cursor\projects\e-IT-SPACES-AI-Projects-aidt-signet\agent-transcripts\` — the name `ISSUE_3.png` appears as text in a pasted note. No image file with that name is stored there
+- `E:\IT_SPACES\AI\Projects\aidt\signet\docs\` — `signet-gateway.jpg` and `signet-architecture.jpg` only
+- Names matching `ISSUE`, `screenshot`, `screen`, or `capture` under `E:\IT_SPACES\AI\Projects\aidt\signet` — no app capture
 
-The Render service serves the checkout and Ops UI. Grafana is not on that host. The agent pack is not on that host. The campaign still below is the GitHub hero, not a capture of that page.
+The labels below are the ones in [`preview/index.html`](preview/index.html). The running page is http://127.0.0.1:8001/ and https://signet-3oz8.onrender.com.
 
-![Signet — a shopper at a dark counter, brass light, card edge unread](docs/signet-gateway.jpg)
+### Checkout
 
-### Checkout and receipt
+The rail steps are Intake, Amount check, Card check, Authorization request, Authorization decision, and Next action. The payment block is labeled Payment. The amount label is `Amount USD · Limit 500.00`. The other fields are Card number and CVC. The buttons are Authorize, AC, End, and Statement. Statement stays hidden until a payment has been issued. Ops sits at the top right.
 
-Open the app to see the six-step rail, the payment, and the receipt. The receipt shows the amount, a masked card, the trace id, and the time.
+### Receipt
 
-Local: http://127.0.0.1:8001/
+Statement opens the slip. Its title is Receipt. The kicker is Completed or Declined. The rows are Amount, Card, Trace ID, and Timestamp. The actions are Print and Close.
+
+### Ops
+
+The tabs are Inspector, Log, API, and Grafana. Payment leaves Ops and returns to the checkout.
+
+| Tab | Labels on the page |
+| --- | --- |
+| Inspector | Transaction statement, Payment detail, Amount limit USD, Set limit |
+| Log | Authorization log |
+| API | Local API, Open local docs |
+| Grafana | Payment control. The figures are Requests, HTTP error rate, and Average latency. The charts are Request rate by status and Latency P95 and P99. The table is Audit log. |
 
 UI note: [`docs/packets/02-ui-prototyping.md`](docs/packets/02-ui-prototyping.md).
 
@@ -394,7 +408,7 @@ No screenshot file of those boards is stored in this repo. Open the URLs above a
 
 A user-impact rule is provisioned for local Grafana only: [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). It watches HTTP 5xx on `signet_requests_total`. A normal decline is HTTP 200 from `POST /authorizations` and does not raise it. The running Grafana process loads that file when it next reads provisioning. This page does not claim the rule has fired.
 
-The on-call check is [`observability/oncall/responder.py`](observability/oncall/responder.py). It reads the local board. There is no pager and no rotation. See [`observability/oncall/responder.md`](observability/oncall/responder.md).
+The on-call command is `python observability/oncall/responder.py --alert observability/oncall/sample-alert.json`. Given that firing payload, it restarts the local app container and requests http://127.0.0.1:8001/. There is no pager and no rotation. See [`observability/oncall/responder.md`](observability/oncall/responder.md). It stays on this PC.
 
 Gate note: [`docs/packets/09-observability.md`](docs/packets/09-observability.md). The security review memo still says alert rules were not added. That memo was not rewritten when this rule file was added.
 
@@ -404,18 +418,11 @@ Gate note: [`docs/packets/09-observability.md`](docs/packets/09-observability.md
 
 The picture of that path is [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg). Container note: [`docs/packets/07-containerization.md`](docs/packets/07-containerization.md).
 
-### Ops
+### Ops on the same window
 
-Ops is one control on the checkout. It opens in the same window. Tabs:
+Ops opens in the same window. The tab labels are the ones in the table above. The Grafana tab reads `/ops/board` and draws that board in the page. It does not embed the Grafana process. Grafana itself stays at http://127.0.0.1:3001 on this PC.
 
-| Tab | On the screen |
-|-----|----------------|
-| Inspector | Statement, payment detail, amount ceiling at the bottom |
-| Log | Authorization rows, no card column |
-| API | Live routes and `/docs` |
-| Grafana | Embedded local boards when Grafana is on this PC |
-
-There is no password gate in this app, and there is no Rule tab.
+There is no Rule tab and no file upload on this screen.
 
 ### Not a second public app
 
@@ -427,32 +434,22 @@ There is no second hosted UI, no public Grafana, and no public agent endpoint. P
 
 ## Evaluation criteria
 
-Maps this repo to the eleven gates under [`docs/packets/`](docs/packets), then to the checks that are only partly done. Score is 0, 1, or 2. **2** means the evidence is in the repo and was read. **1** means part of it is present and the rest is named here. **0** means this repo does not ship it. Open gaps are tracked at https://github.com/zakard114/signet/issues. The gate notes stay in `docs/packets/`; they are not copied into issues.
+Course final-project rubric for this gateway. The score is what this repo can claim now. Max is the course maximum. A lower score means the missing piece is named in the evidence.
 
-| # | Criterion | Score | Evidence in this repo |
-|---|-----------|------:|------------------------|
-| 1 | **Problem statement** | 2 | [`SPEC.md`](SPEC.md), [`docs/packets/01-problem-statement.md`](docs/packets/01-problem-statement.md). Shopper sees six steps and a sentence. Operator sees Ops. Full card number is not stored. |
-| 2 | **UI** | 2 | [`preview/index.html`](preview/index.html), [`docs/packets/02-ui-prototyping.md`](docs/packets/02-ui-prototyping.md). Checkout and Ops share one window. Receipt is not a modal. |
-| 3 | **API contract** | 2 | [`openapi.yaml`](openapi.yaml), [`docs/packets/03-api-contract.md`](docs/packets/03-api-contract.md). `POST /authorizations`, `GET /plates`, `GET /authorizations/latest`, `GET /logs`, `PUT /rules/limit`. |
-| 4 | **Backend** | 2 | [`app/main.py`](app/main.py), [`docs/packets/04-backend.md`](docs/packets/04-backend.md). Ceiling, length, approval, decline plate, and institution sentence. Decision runs in this file. |
-| 5 | **Data persistence** | 2 | Postgres 16 on host port **5433**. Tables `authorization_log` (masked card, trace id), `plate`, `institution_rule` (`amount_limit`). Integration tests wrote and read a log row. [`docs/packets/05-data-persistence.md`](docs/packets/05-data-persistence.md). |
-| 6 | **Automated testing** | 2 | [`tests/test_unit.py`](tests/test_unit.py), [`tests/test_integration.py`](tests/test_integration.py), [`tests/test_screen.py`](tests/test_screen.py). Host run: 4 passed. [`docs/packets/06-automated-testing.md`](docs/packets/06-automated-testing.md). |
-| 7 | **Containerization** | 2 | [`Dockerfile`](Dockerfile), [`docker-compose.yaml`](docker-compose.yaml). [`docs/packets/07-containerization.md`](docs/packets/07-containerization.md). |
-| 8 | **Deployment** | 1 | https://signet-3oz8.onrender.com is the development URL. `main` auto-deploys development. Production is a manual Render dashboard deploy and was not started from this repo. No fresh public smoke is recorded on this page. [`docs/packets/08-deployment.md`](docs/packets/08-deployment.md). |
-| 9 | **Observability** | 1 | Local boards and OpenTelemetry are in [`observability/`](observability). Grafana is http://127.0.0.1:3001 only. The shopper 5xx rule file is in the repo and is not claimed loaded or firing. Not on Render. [`docs/packets/09-observability.md`](docs/packets/09-observability.md). |
-| 10 | **Agentic extension** | 2 | [`AGENTS.md`](AGENTS.md), [`agent-hooks/block_pan.py`](agent-hooks/block_pan.py), [`custom-agent/`](custom-agent), [`mcp-server/`](mcp-server). The pack is in the repo and is not on Render. [`docs/packets/10-agentic-extension.md`](docs/packets/10-agentic-extension.md). |
-| 11 | **Security review** | 1 | [`docs/security-review.md`](docs/security-review.md) records the card-number check and its limits. It still says alert rules were not added. That sentence was left as written. |
-| 12 | **Public tracker** | 1 | Open gaps: [#1](https://github.com/zakard114/signet/issues/1) CI run not yet claimed green, [#2](https://github.com/zakard114/signet/issues/2) no pager, [#3](https://github.com/zakard114/signet/issues/3) the security memo does not cover the new rule. The eleven gate write-ups are still the packet files, not issues. |
-| — | **CI** | 1 | [`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs `pytest` with a Postgres 16 service on port 5433. A green Actions run is not claimed here. No badge. |
-| — | **User-impact alert** | 1 | [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml) watches HTTP 5xx. A normal decline is HTTP 200 and does not match. No pager. Not deployed. |
-| — | **On-call responder** | 1 | [`observability/oncall/responder.py`](observability/oncall/responder.py) reads the local board. There is no rotation and no paging provider. [`observability/oncall/responder.md`](observability/oncall/responder.md). |
-| — | **Reproducibility** | 1 | [Quick start](#quick-start), [`requirements.txt`](requirements.txt), Compose. No `.env.example`. |
-| — | **Ingestion pipeline** | 0 | Not a separate product. `init_db()` creates tables on startup. No workflow engine. |
-| — | **Retrieval evaluation** | 0 | Not in this repo. |
-| — | **LLM evaluation** | 0 | Not in this repo. The decision does not call an LLM. |
-| — | **Hybrid search** | 0 | Not in this repo. |
-| — | **Re-ranking** | 0 | Not in this repo. |
-| — | **Query rewriting** | 0 | Not in this repo. |
+| # | Criterion | Max | Score | What Signet has |
+|---|-----------|----:|------:|-----------------|
+| 1 | **Problem description** | 2 | 2 | [Problem](#problem) and [`SPEC.md`](SPEC.md). E-commerce payment gateway and ops console. Six steps: Intake, amount ceiling, card length, authorization request, decision, next action. A success issues a receipt with a trace id. The full card number is never stored. The decision runs inside this service. |
+| 2 | **Product specification** | 2 | 2 | Written spec: [`SPEC.md`](SPEC.md). Task tracker: https://github.com/zakard114/signet/issues. Issues state acceptance criteria. Implementation comments are on those issues. |
+| 3 | **Agent team specification** | 2 | 2 | [`docs/team.md`](docs/team.md), linked from [`AGENTS.md`](AGENTS.md). Roles: checkout and backend, ops console, observability, on-call responder. |
+| 4 | **Context management** | 2 | 2 | [`AGENTS.md`](AGENTS.md) states the project and links [`docs/process.md`](docs/process.md), [`docs/team.md`](docs/team.md), [`docs/permissions.md`](docs/permissions.md), and [`docs/packets/`](docs/packets/). Grafana and the agent pack stay off Render. No full card number in files, logs, or telemetry. No POST `/plates` from the pack. |
+| 5 | **Application** | 2 | 2 | [`preview/index.html`](preview/index.html), [`app/main.py`](app/main.py), Postgres. One command: `docker compose -f docker-compose.yaml up -d --build`. Screen labels are the ones in that HTML file. |
+| 6 | **Testing** | 2 | 2 | Unit: [`tests/test_unit.py`](tests/test_unit.py). Integration: [`tests/test_integration.py`](tests/test_integration.py). Also [`tests/test_screen.py`](tests/test_screen.py). Command: `.venv\Scripts\python.exe -m pytest -q --tb=line` with `DATABASE_URL=postgresql://signet:signet@127.0.0.1:5433/signet`. Result this session: 4 passed. |
+| 7 | **Containerization** | 2 | 2 | [`docker-compose.yaml`](docker-compose.yaml) starts the app and Postgres with the command in row 5. [`Dockerfile`](Dockerfile). |
+| 8 | **Deployment** | 2 | 2 | https://signet-3oz8.onrender.com. `main` auto-deploys development. Production is a manual Render dashboard deploy. Rollback is [Rollback](#rollback). This repo does not start that production deploy. |
+| 9 | **CI/CD** | 3 | 2 | [`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs `pytest` on pull requests with a Postgres 16 service. No badge. A completed green Actions run is not claimed on this page. Development CD is the Render auto-deploy from `main`. Production stays manual. |
+| 10 | **Observability** | 2 | 2 | [`app/telemetry.py`](app/telemetry.py) and [`observability/`](observability/). Metrics, traces, and the structured log share a trace id. The log line has no card number and no CVC. Grafana: http://127.0.0.1:3001. Not on Render. |
+| 11 | **Alerting on user impact** | 1 | 1 | [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). Trigger: the 5-minute rate of HTTP 5xx on `signet_requests_total` stays above 0 for 5 minutes. A normal decline is HTTP 200 and does not raise it. Local Grafana only. This page does not claim the rule has fired. |
+| 12 | **On-call agent** | 2 | 1 | [`observability/oncall/responder.py`](observability/oncall/responder.py) and [`observability/oncall/sample-alert.json`](observability/oncall/sample-alert.json). The command restarts the local app when that payload is firing. Score stays 1 until that command has been run and the local app has answered. It does not run on Render and it does not POST `/plates`. |
 
 ### Quick verification commands
 

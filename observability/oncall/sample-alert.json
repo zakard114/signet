@@ -1,0 +1,16 @@
+{
+  "status": "firing",
+  "receiver": "local",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "Shoppers are receiving server errors",
+        "impact": "shopper"
+      },
+      "annotations": {
+        "summary": "HTTP 5xx responses are reaching shoppers."
+      }
+    }
+  ]
+}

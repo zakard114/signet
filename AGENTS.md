@@ -1,6 +1,15 @@
 # Signet agent instructions
 
-Signet is an e-commerce payment gateway. The shopper sees six steps. The full card number is never stored and never returned.
+Signet is an e-commerce payment gateway and ops console. The shopper sees six steps. The decision runs inside this service. The full card number is never stored and never returned.
+
+## Docs
+
+- Spec: [SPEC.md](SPEC.md)
+- Process: [docs/process.md](docs/process.md)
+- Team: [docs/team.md](docs/team.md)
+- Permissions: [docs/permissions.md](docs/permissions.md)
+- Packets: [docs/packets/](docs/packets/)
+- Task tracker: https://github.com/zakard114/signet/issues
 
 ## Local
 
@@ -20,6 +29,7 @@ Signet is an e-commerce payment gateway. The shopper sees six steps. The full ca
 - Read the local decline card.
 - Read openapi.yaml and app/main.py.
 - Run agent-hooks/block_pan.py and custom-agent/agent.py on this PC.
+- Run observability/oncall/responder.py on this PC with a local alert file.
 
 ## Not allowed
 
