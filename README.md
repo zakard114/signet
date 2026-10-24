@@ -1,6 +1,6 @@
 # Signet
 
-![Signet — editorial collage of a blank card, a laptop, and a phone](docs/signet-gateway.jpg)
+![Signet — a hand holding a card in sunlight](docs/signet-gateway.jpg)
 
 **An e-commerce payment gateway, with the operations console beside the checkout.** The shopper pays in this service. The operator inspects the same payment and sets the amount ceiling. The full card number is never stored and never returned.
 
