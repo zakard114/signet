@@ -1,0 +1,65 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: signet-shoppers
+    folder: Signet
+    interval: 1m
+    rules:
+      - uid: signet_shopper_5xx
+        title: Shoppers are receiving server errors
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: sum(rate(signet_requests_total{exported_job="signet",status=~"5.."}[5m])) or vector(0)
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: OK
+        for: 5m
+        annotations:
+          summary: HTTP 5xx responses are reaching shoppers. A normal decline stays HTTP 200 and does not raise this rule.
+          responder: On this PC run python observability/oncall/responder.py. Do not deploy Grafana. Do not start a production deploy.
+        labels:
+          impact: shopper
+        isPaused: false
