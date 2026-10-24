@@ -2,13 +2,15 @@ import csv
 import io
 import logging
 import os
+import secrets
 import time
+from contextvars import ContextVar
 from datetime import datetime
 from pathlib import Path
 from typing import Literal, Optional
 
 import psycopg
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import FileResponse, HTMLResponse
 from opentelemetry import trace
@@ -18,6 +20,7 @@ from app.telemetry import board_snapshot, count_request, log_line, remember_requ
 
 app = FastAPI(title="Signet", version="0.1.0", docs_url=None, redoc_url=None)
 LIMIT = 500
+REQUEST_TRACE: ContextVar[str] = ContextVar("signet_trace_id", default="")
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
     "postgresql://signet:signet@127.0.0.1:5433/signet",
@@ -123,10 +126,13 @@ def mask_pan(pan: str) -> str:
 
 
 def current_trace_id() -> str:
+    pinned = REQUEST_TRACE.get()
+    if pinned:
+        return pinned
     span_context = trace.get_current_span().get_span_context()
-    if span_context is None or not span_context.is_valid:
-        return ""
-    return format(span_context.trace_id, "032x")
+    if span_context is not None and span_context.is_valid and span_context.trace_id:
+        return format(span_context.trace_id, "032x")
+    return secrets.token_hex(16)
 
 
 def has_pan(text: str) -> bool:
@@ -349,10 +355,18 @@ async def trace_request(request, call_next):
     started = time.perf_counter()
     tracer = trace.get_tracer("signet")
     with tracer.start_as_current_span(f"{request.method} {request.url.path}") as span:
-        response = await call_next(request)
-        duration_ms = int((time.perf_counter() - started) * 1000)
         span_context = span.get_span_context()
-        trace_id = format(span_context.trace_id, "032x")
+        if span_context is not None and span_context.is_valid and span_context.trace_id:
+            trace_id = format(span_context.trace_id, "032x")
+        else:
+            trace_id = secrets.token_hex(16)
+        request.state.trace_id = trace_id
+        token = REQUEST_TRACE.set(trace_id)
+        try:
+            response = await call_next(request)
+        finally:
+            REQUEST_TRACE.reset(token)
+        duration_ms = int((time.perf_counter() - started) * 1000)
         span.set_attribute("http.method", request.method)
         span.set_attribute("http.target", request.url.path)
         span.set_attribute("http.status_code", response.status_code)
@@ -457,13 +471,13 @@ def read_institution_rule() -> Optional[RuleView]:
         ).fetchone()
         if found is None:
             found = conn.execute(
-                """
-                SELECT filename, code, sentence, http_status, log_field, retry, amount_limit
-                FROM institution_rule
-                WHERE id = 1
-                """
-            ).fetchone()
-    if found is None:
+            """
+            SELECT filename, code, sentence, http_status, log_field, retry, amount_limit
+            FROM institution_rule
+            WHERE id = 1
+            """
+        ).fetchone()
+    if found is None or not str(found[2] or "").strip():
         return None
     return RuleView(
         filename=found[0],
@@ -491,20 +505,31 @@ def set_amount_ceiling(amount: float) -> RuleView:
     if amount <= 0 or amount > 100000:
         raise HTTPException(status_code=400, detail="rejected limit")
     with psycopg.connect(DATABASE_URL) as conn:
-        updated = conn.execute(
+        conn.execute(
             """
-            UPDATE institution_rule
-            SET amount_limit = %s, updated_at = now()
-            WHERE id = 1
-            RETURNING id
+            INSERT INTO institution_rule (
+                id, filename, code, sentence, http_status, log_field, retry, amount_limit
+            )
+            VALUES (1, '', '', '', 400, 'amount', 'not_retryable', %s)
+            ON CONFLICT (id) DO UPDATE SET
+                amount_limit = EXCLUDED.amount_limit,
+                updated_at = now()
             """,
             (amount,),
-        ).fetchone()
-    if updated is None:
-        raise HTTPException(status_code=404, detail="no institution rule")
+        )
     found = read_institution_rule()
+    ceiling = read_amount_ceiling()
     if found is None:
-        raise HTTPException(status_code=404, detail="no institution rule")
+        return RuleView(
+            filename="",
+            code="",
+            sentence="",
+            http_status=400,
+            log_field="amount",
+            retry="not_retryable",
+            amount_limit=ceiling,
+        )
+    found.amount_limit = ceiling
     return found
 
 
@@ -883,8 +908,18 @@ def read_board() -> dict:
 @app.get("/rules", summary="Read the institution rule")
 def read_rule() -> RuleView:
     found = read_institution_rule()
+    ceiling = read_amount_ceiling()
     if found is None:
-        raise HTTPException(status_code=404, detail="no institution rule")
+        return RuleView(
+            filename="",
+            code="",
+            sentence="",
+            http_status=400,
+            log_field="amount",
+            retry="not_retryable",
+            amount_limit=ceiling,
+        )
+    found.amount_limit = ceiling
     return found
 
 
@@ -926,10 +961,10 @@ def edit_saved_rule(doc_id: int, body: RuleDocumentEdit) -> RuleDocument:
 
 
 @app.post("/authorizations", summary="Request authorization")
-def authorize(body: AuthorizationRequest) -> AuthorizationResponse:
+def authorize(body: AuthorizationRequest, request: Request) -> AuthorizationResponse:
     pan = digits(body.card)
     rule = read_institution_rule()
-    limit = rule.amount_limit if rule is not None else float(LIMIT)
+    limit = read_amount_ceiling()
     if body.amount <= 0 or body.amount > limit:
         row = AuthorizationResponse(
             stop_step=2,
@@ -974,7 +1009,8 @@ def authorize(body: AuthorizationRequest) -> AuthorizationResponse:
                 retry=rule.retry,
             )
     row.amount = body.amount
-    save_log(row, mask_pan(pan), current_trace_id())
+    trace_id = getattr(request.state, "trace_id", "") or current_trace_id()
+    save_log(row, mask_pan(pan), trace_id)
     return row
 
 

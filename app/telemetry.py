@@ -38,14 +38,15 @@ def log_line(trace_id: str, method: str, path: str, status: int, duration_ms: in
 
 def setup_otel() -> None:
     endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "").rstrip("/")
-    if not endpoint:
-        return
     resource = Resource.create({"service.name": "signet"})
     tracer_provider = TracerProvider(resource=resource)
-    tracer_provider.add_span_processor(
-        BatchSpanProcessor(OTLPSpanExporter(endpoint=f"{endpoint}/v1/traces"))
-    )
+    if endpoint:
+        tracer_provider.add_span_processor(
+            BatchSpanProcessor(OTLPSpanExporter(endpoint=f"{endpoint}/v1/traces"))
+        )
     trace.set_tracer_provider(tracer_provider)
+    if not endpoint:
+        return
     reader = PeriodicExportingMetricReader(
         OTLPMetricExporter(endpoint=f"{endpoint}/v1/metrics"),
         export_interval_millis=5000,
