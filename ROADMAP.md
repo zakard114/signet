@@ -18,4 +18,4 @@ Do not write the next gate's build notes before the current gate is finished.
 
 Not in this project: Kestra, AWS, joining policy-refund, a second Fault Plate deploy, a product tab row on the checkout, neon, a customer file upload, skipping a gate.
 
-Ops tabs are Inspector, Log, API, and Grafana. Grafana stays on this PC.
+Ops tabs are Inspector, Log, API, and Grafana. The Grafana tab is part of the payment page. The Grafana server stays on this PC.
