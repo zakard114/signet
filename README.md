@@ -37,7 +37,7 @@ The stack stays behind that screen. That is what this gateway is for.
 - [Architecture](#architecture)
 - [Decisions and trade-offs](#decisions-and-trade-offs)
 - [Project structure](#project-structure)
-- [Screen labels](#screen-labels)
+- [Screenshots](#screenshots)
 - [Evaluation criteria](#evaluation-criteria)
 - [Cloud deployment](#cloud-deployment)
 - [Troubleshooting](#troubleshooting)
@@ -359,21 +359,33 @@ AGENTS.md             # What the local agent pack may do
 
 ---
 
-## Screen labels
+## Screenshots
 
-The labels below are the ones in [`preview/index.html`](preview/index.html). The same page is http://127.0.0.1:8001/ and https://signet-3oz8.onrender.com. The picture at the top of this README is a campaign still. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram.
+These are the public page at https://signet-3oz8.onrender.com. The same labels are in [`preview/index.html`](preview/index.html) and on http://127.0.0.1:8001/. The picture at the top of this README is a campaign still. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram. Card numbers in these pictures are masked.
 
 ### Checkout
 
-The rail steps are Intake, Amount check, Card check, Authorization request, Authorization decision, and Next action. The payment block is labeled Payment. The amount label is `Amount USD · Limit 500.00`. The other fields are Card number and CVC. The buttons are Authorize, AC, End, and Statement. Statement stays hidden until a payment has been issued. Ops sits at the top right.
+![Checkout on the public site](docs/screenshots/checkout.png)
+
+The rail steps are Intake, Amount check, Card check, Authorization request, Authorization decision, and Next action. The payment block is labeled Payment. The amount label is `Amount USD · Limit`, then the stored ceiling. The other fields are Card number and CVC. The buttons are Authorize, AC, End, and Statement. Ops sits at the top right.
 
 ### Receipt
+
+![Receipt beside the checkout](docs/screenshots/receipt.png)
 
 Statement opens the slip. Its title is Receipt. The kicker is Completed or Declined. The rows are Amount, Card, Trace ID, and Timestamp. The actions are Print and Close.
 
 ### Ops
 
 The tabs are Inspector, Log, API, and Grafana. Payment leaves Ops and returns to the checkout.
+
+![Inspector, with the amount ceiling at the bottom](docs/screenshots/inspector.png)
+
+![Authorization log](docs/screenshots/log.png)
+
+![Local API](docs/screenshots/api.png)
+
+![Grafana tab on the public page](docs/screenshots/grafana-tab.png)
 
 | Tab | Labels on the page |
 | --- | --- |
