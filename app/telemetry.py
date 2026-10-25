@@ -52,6 +52,12 @@ def setup_otel() -> None:
         export_interval_millis=5000,
     )
     metrics.set_meter_provider(MeterProvider(resource=resource, metric_readers=[reader]))
+    global _request_duration
+    _request_duration = metrics.get_meter("signet").create_histogram(
+        "http.server.request.duration",
+        unit="s",
+        description="Duration of HTTP requests served by Signet.",
+    )
     log_provider = LoggerProvider(resource=resource)
     log_provider.add_log_record_processor(
         BatchLogRecordProcessor(OTLPLogExporter(endpoint=f"{endpoint}/v1/logs"))
@@ -163,7 +169,15 @@ def board_snapshot() -> dict:
     }
 
 
-def count_request(method: str, path: str, status: int) -> None:
+_request_duration = None
+
+
+def count_request(method: str, path: str, status: int, duration_ms: int | None = None) -> None:
     meter = metrics.get_meter("signet")
     counter = meter.create_counter("signet_requests_total")
     counter.add(1, {"method": method, "path": path, "status": str(status)})
+    if _request_duration is not None and duration_ms is not None:
+        _request_duration.record(
+            max(duration_ms, 0) / 1000,
+            {"method": method, "path": path, "status": str(status)},
+        )

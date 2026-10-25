@@ -91,8 +91,16 @@
     .slip .note { color: var(--dim); line-height: 1.5; margin: 0 0 14px; }
     .slip .actions { margin-top: 64px; }
     @media (max-width: 860px) {
-      .stage.open { width: min(980px, 100%); flex-direction: column; }
-      .stage > .desk, .stage:not(.open) > .desk { border-radius: 28px 28px 0 0; }
+      main { padding: 20px 14px 32px; place-items: start center; }
+      main.receipt-open { padding-left: 14px; padding-right: 14px; }
+      .desk { grid-template-columns: 1fr; }
+      .pay-bottom { margin-top: 36px; }
+      .actions { flex-wrap: wrap; }
+      .stage, .stage.open { width: min(980px, 100%); }
+      .stage.open { flex-direction: column; }
+      .stage.open > .desk { flex: 1 1 auto; width: auto; }
+      .stage > .desk, .stage:not(.open) > .desk { border-radius: 28px; }
+      .stage.open > .desk { border-radius: 28px 28px 0 0; }
       .slip { flex: none; border-left: 1px solid var(--line); border-top: 0; border-radius: 0 0 28px 28px; }
     }
     .rail { padding: 36px 28px; border-right: 1px solid var(--line); }
@@ -540,6 +548,8 @@
     .audit-tools p { margin: 0; }
     @media (max-width: 720px) {
       .metric-row { grid-template-columns: 1fr; }
+      .card-row { grid-template-columns: 1fr; }
+      .kv { grid-template-columns: 1fr; gap: 4px; }
     }
     select, input[type="file"] { color: var(--bone); }
     select {
@@ -579,6 +589,30 @@
     button.ops-corner:hover:not(:disabled) { color: #fffaf2; }
     button.ops-corner:disabled { visibility: hidden; }
     [hidden] { display: none !important; }
+    @media (max-width: 860px) {
+      .rail {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 22px 20px 8px;
+      }
+      .pay { padding: 26px 20px 22px; }
+      h1 { font-size: 52px; }
+      .ops, .ops-stage, .ops-stage.open {
+        width: min(980px, 100%);
+        max-height: none;
+      }
+      .ops-stage.open { flex-direction: column; }
+      .ops-stage.open > .ops {
+        flex: 1 1 auto;
+        width: auto;
+        border-radius: 28px 28px 0 0;
+      }
+      .rule-slip {
+        border-left: 1px solid var(--line);
+        border-top: 0;
+        border-radius: 0 0 28px 28px;
+      }
+    }
   </style>
 </head>
 <body>

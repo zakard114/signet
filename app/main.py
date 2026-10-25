@@ -377,7 +377,7 @@ async def trace_request(request, call_next):
             emit.error(line)
         else:
             emit.info(line)
-        count_request(request.method, request.url.path, response.status_code)
+        count_request(request.method, request.url.path, response.status_code, duration_ms)
         remember_request(request.method, request.url.path, response.status_code, duration_ms, trace_id)
         response.headers["X-Trace-Id"] = trace_id
         return response
