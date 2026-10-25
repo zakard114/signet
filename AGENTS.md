@@ -16,12 +16,12 @@ Signet is an e-commerce payment gateway and ops console. The shopper sees six st
 - App: http://127.0.0.1:8001
 - Read the one decline card: GET http://127.0.0.1:8001/plates
 - Postgres host port: 5433
-- Grafana stays on this PC at http://127.0.0.1:3001
+- Grafana stays on this PC at http://127.0.0.1:3001. That is the Grafana server. The Ops tab on the app draws `GET /ops/board` and is part of the public page.
 
 ## Public
 
 - https://signet-3oz8.onrender.com
-- Do not deploy Grafana or this agent pack to Render.
+- Do not deploy the Grafana server or this agent pack to Render.
 - Do not start a Render deploy from this pack.
 
 ## Allowed in this pack

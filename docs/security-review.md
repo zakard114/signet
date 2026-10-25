@@ -24,6 +24,10 @@ The full card number is not stored, not returned, and not written to logs or tel
 - The hook only blocks 13 or more consecutive digits. It does not judge spaces or dashes. A field name may be the word card. That word is not the full number.
 - Ops tabs exist locally. The full card number is still absent. Grafana is still not deployed.
 
+## Later, after this review
+
+The local Grafana server now loads [`observability/grafana/provisioning/alerting/user-impact.yaml`](../observability/grafana/provisioning/alerting/user-impact.yaml). The on-call responder is [`observability/oncall/responder.py`](../observability/oncall/responder.py). Those pieces were not part of the check above. The card-number findings in that check are unchanged.
+
 ## Disposition
 
 Keep the current tables, log line, and span attributes. Do not add the full card number to a column, a log field, or a span attribute. Do not commit a file that still contains the test number.

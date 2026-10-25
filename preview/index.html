@@ -217,6 +217,8 @@
       color: var(--dim);
       padding: 6px;
       cursor: pointer;
+      touch-action: none;
+      user-select: none;
     }
     .card-eye:hover { color: var(--bone); }
     .card-eye svg { display: block; width: 100%; height: 100%; }
@@ -1668,12 +1670,39 @@
         paint();
         paintRequired();
       });
-      button.onclick = () => {
-        input.classList.toggle("masked");
+      function reveal() {
+        input.classList.remove("masked");
         state.peekAt = -1;
         clearTimeout(state.timer);
         paint();
-      };
+      }
+      function conceal() {
+        input.classList.add("masked");
+        state.peekAt = -1;
+        clearTimeout(state.timer);
+        paint();
+      }
+      button.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        button.setPointerCapture(event.pointerId);
+        reveal();
+      });
+      button.addEventListener("pointerup", conceal);
+      button.addEventListener("pointercancel", conceal);
+      button.addEventListener("lostpointercapture", conceal);
+      button.addEventListener("keydown", (event) => {
+        if (event.repeat) return;
+        if (event.key !== " " && event.key !== "Enter") return;
+        event.preventDefault();
+        reveal();
+      });
+      button.addEventListener("keyup", (event) => {
+        if (event.key !== " " && event.key !== "Enter") return;
+        event.preventDefault();
+        conceal();
+      });
+      button.addEventListener("blur", conceal);
       paint();
       return {
         reset() {

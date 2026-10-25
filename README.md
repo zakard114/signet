@@ -11,7 +11,7 @@
 
 The decision runs inside this service. It does not call out to finish the authorization.
 
-Hub on the local app: **Checkout · Inspector · Log · API · Grafana**. Grafana and the agent pack stay on this PC. They are not part of the public Render service.
+The page on both hosts has **Checkout · Inspector · Log · API · Grafana**. The Grafana tab is drawn by this app from `GET /ops/board` on that same host. The Grafana server at http://127.0.0.1:3001 and the agent pack stay on this PC.
 
 ## Mission
 
@@ -37,7 +37,7 @@ The stack stays behind that screen. That is what this gateway is for.
 - [Architecture](#architecture)
 - [Decisions and trade-offs](#decisions-and-trade-offs)
 - [Project structure](#project-structure)
-- [Screenshots](#screenshots)
+- [Screen labels](#screen-labels)
 - [Evaluation criteria](#evaluation-criteria)
 - [Cloud deployment](#cloud-deployment)
 - [Troubleshooting](#troubleshooting)
@@ -86,7 +86,7 @@ Gate note: [`docs/packets/05-data-persistence.md`](docs/packets/05-data-persiste
 | Inspector | The latest statement when that payment's HTTP status is 200, otherwise an empty statement. Payment detail shows the recorded sentence, HTTP status, log field, and retry. The amount ceiling sits at the bottom. Set limit writes the ceiling used by the amount step. This tab does not edit the decline plate or the institution sentence. |
 | Log | Authorization rows from `GET /logs`. No card column. |
 | API | Live routes and `/docs`. The contract file is [`openapi.yaml`](openapi.yaml). |
-| Grafana | Local only, at http://127.0.0.1:3001. It is not part of the public service. |
+| Grafana | The tab on this page. It draws `GET /ops/board` from the same app, on this PC and on Render. The Grafana server with dashboards and alert rules is http://127.0.0.1:3001 on this PC. |
 
 [↑ Contents](#table-of-contents)
 
@@ -94,7 +94,7 @@ Gate note: [`docs/packets/05-data-persistence.md`](docs/packets/05-data-persiste
 
 ## Status
 
-**The public service is the Render web app.** Local Compose adds Postgres and the telemetry stack on this PC. Grafana is not deployed. The agent pack is not deployed. See [Evaluation criteria](#evaluation-criteria) and [Cloud deployment](#cloud-deployment).
+**The public service is the Render web app:** checkout, Ops, and the in-app Grafana tab. Local Compose adds Postgres and the telemetry stack on this PC. The Grafana server and the agent pack are not Render services. See [Evaluation criteria](#evaluation-criteria) and [Cloud deployment](#cloud-deployment).
 
 **Public service:** https://signet-3oz8.onrender.com  
 `main` auto-deploys the Render **development** service. **Production** is a manual deploy in the Render dashboard.
@@ -120,7 +120,7 @@ Replace the example `cd` with your own clone path. Relative paths such as `app/`
 
 - Checkout, the six steps, Postgres, and the receipt are one FastAPI app. The decision runs in `app/main.py`.
 - Ops tabs are Inspector, Log, API, and Grafana. There is no Rule tab and no CSV upload.
-- Grafana stays at http://127.0.0.1:3001 on this PC. The agent pack stays in this repo and is not deployed to Render.
+- The Ops Grafana tab reads `GET /ops/board` on the app that served the page. The Grafana server stays at http://127.0.0.1:3001 on this PC. The agent pack stays in this repo and talks only to the local app.
 - `main` auto-deploys the Render development service. Production is started by a person in the Render dashboard.
 
 [↑ Contents](#table-of-contents)
@@ -133,9 +133,10 @@ Replace the example `cd` with your own clone path. Relative paths such as `app/`
 |------|----------------|-----------|
 | App | Local Compose and the Render web service | `DATABASE_URL`. Local default is Postgres on the host port **5433**. On Render, set `DATABASE_URL` to the Render Postgres connection string. |
 | Listen port | Container | `PORT`. Local Compose publishes **8001**. The image uses `${PORT:-8001}`. |
-| Traces, metrics, logs | Local Compose only | `OTEL_EXPORTER_OTLP_ENDPOINT` (Compose sets `http://otel-collector:4318`). |
-| Grafana | This PC only | User and password are the Grafana environment values in [`docker-compose.yaml`](docker-compose.yaml). Anonymous viewing is enabled as Viewer. **Not** set on Render. |
-| Agent pack | This PC only | No Render environment. It reads `http://127.0.0.1:8001/plates`. |
+| In-app request board | The app process, local and on Render | `GET /ops/board`. Counts stay in that process for 15 minutes. |
+| Collector, Prometheus, Loki, Tempo | Local Compose only | `OTEL_EXPORTER_OTLP_ENDPOINT` (Compose sets `http://otel-collector:4318`). Render does not set this. |
+| Grafana server | This PC only | http://127.0.0.1:3001. User and password are the Grafana environment values in [`docker-compose.yaml`](docker-compose.yaml). Anonymous viewing is enabled as Viewer. The container port is 3000, published on the host as **3001**. |
+| Agent pack | This PC only | No Render service. It reads `http://127.0.0.1:8001/plates`. |
 
 This repo does not ship a `.env.example`. Local values live in [`docker-compose.yaml`](docker-compose.yaml). Public database settings live in the Render dashboard.
 
@@ -225,7 +226,7 @@ python mcp-server/server.py --once
 
 ![Signet live path — checkout, six FastAPI steps, Postgres, receipt, local Grafana](docs/signet-architecture.jpg)
 
-**Live path:** Shopper checkout → FastAPI six steps (Intake, amount ceiling, card length, authorization request, decision, next action) → Postgres (authorization log, masked card, trace id, amount ceiling, decline plate) → receipt. OpenTelemetry and Grafana stay on this PC at http://127.0.0.1:3001. The agent pack stays off Render.
+**Live path:** Shopper checkout → FastAPI six steps (Intake, amount ceiling, card length, authorization request, decision, next action) → Postgres (authorization log, masked card, trace id, amount ceiling, decline plate) → receipt. The Ops Grafana tab reads `GET /ops/board` from the same app. The OpenTelemetry collector and the Grafana server stay on this PC at http://127.0.0.1:3001. The agent pack talks only to the local app.
 
 Technical graph (same system, code-oriented):
 
@@ -265,7 +266,7 @@ flowchart TD
     style Agent fill:#1c1a16,color:#e8e2d6,stroke:#64748b
 ```
 
-**Request path (short):** amount and card → checkout UI → `POST /authorizations` → ceiling, then length, then the in-service decision → log row (masked card, trace id) → receipt. Local requests also export through the OpenTelemetry collector to Grafana. The public Render service is the web app and Render Postgres. Grafana and the agent pack are not on that service.
+**Request path (short):** amount and card → checkout UI → `POST /authorizations` → ceiling, then length, then the in-service decision → log row (masked card, trace id) → receipt. The same app answers `GET /ops/board` for the Grafana tab. On this PC, requests also export through the OpenTelemetry collector to the Grafana server. Render runs the web app and Render Postgres. The Grafana server and the agent pack are not Render services.
 
 ### Tech stack
 
@@ -276,7 +277,7 @@ flowchart TD
 | Postgres 16 | Authorization log, masked card, trace id, amount ceiling, decline plate |
 | OpenTelemetry | Spans, metrics, and log export from `app/telemetry.py` |
 | Prometheus, Loki, Tempo | Local backends for the Grafana boards |
-| Grafana 11 | Local dashboards only. http://127.0.0.1:3001 |
+| Grafana 11 | Dashboards and alert rules on this PC. http://127.0.0.1:3001 (host) → port 3000 in the container |
 | Docker | App image plus the Compose stack in `docker-compose.yaml` |
 
 ### API surface
@@ -310,16 +311,15 @@ Gate notes: [`docs/packets/03-api-contract.md`](docs/packets/03-api-contract.md)
 - **One HTTP 200 from `POST /authorizations`.** The shopper-facing outcome is `http_status` in the JSON body, plus `sentence`, `log_field`, and `retry`. Trade-off: a client that only looks at the transport status will treat a decline as success unless it reads the body.
 - **Masked card on the log, no full number.** `authorization_log.masked_card` is stored. The plate table has no card column. `GET /logs` does not return a card. Trade-off: a receipt can show a mask; it cannot show or recover the full number.
 - **CVC stays on the form.** The field is masked in the browser. It is not sent, stored, logged, or printed. Trade-off: the API cannot echo it, because it never receives it.
-- **Grafana on this PC only.** Compose runs the collector, Prometheus, Loki, Tempo, and Grafana. Render runs the web service and Render Postgres. Trade-off: the public URL has no metrics UI. Operators use http://127.0.0.1:3001.
-- **Agent pack off Render.** Skill, subagent note, MCP server, digit-run hook, and the custom agent stay in the repo and talk to the local app. Trade-off: the public site does not expose those tools.
-- **Development follows `main`. Production does not.** A push to `main` auto-deploys the Render development service. Production is a manual deploy in the Render dashboard. Trade-off: two Render actions, so a development deploy is not a production deploy.
-- **No second public UI.** There is no separate hosted prototype. The same `preview/index.html` is what Compose and Render serve.
+- **Two Grafana things.** The Ops tab is part of `preview/index.html`. It calls `GET /ops/board` on the host that served the page and draws that board. On Render, the figures are that Render process. The Grafana server, collector, Prometheus, Loki, and Tempo are Compose on this PC. Operators open http://127.0.0.1:3001 for the dashboards and the alert rule.
+- **Agent pack stays on this PC.** The skill, subagent note, MCP server, digit-run hook, and custom agent stay in the repo. They read the local decline plate at `http://127.0.0.1:8001/plates`. They are not a Render service.
+- **Development follows `main`. Production does not.** A push to `main` auto-deploys the Render development service. Production is a manual deploy in the Render dashboard. A development deploy does not by itself change production.
 
 ### Security notes
 
 The review memo is [`docs/security-review.md`](docs/security-review.md). It records a point-in-time check on the local app: the full card number was not in `GET /plates`, not in the authorization response, not in `authorization_log` or `plate` as a full number, and not in the app log line or local Loki. The hook `agent-hooks/block_pan.py` blocks a file that contains 13 or more consecutive digits.
 
-Limits recorded in that memo, not extra controls: Semgrep was not installed, Grafana alert rules were not added, and the public app was not called for that review. The hook does not treat spaces or dashes as a digit run. AWS is not used.
+That memo is a point-in-time check. It does not describe the alert file or the on-call responder added later. The hook does not treat spaces or dashes as a digit run. AWS is not used.
 
 [↑ Contents](#table-of-contents)
 
@@ -359,19 +359,9 @@ AGENTS.md             # What the local agent pack may do
 
 ---
 
-## Screenshots
+## Screen labels
 
-No capture of this app is in the repository. The picture at the top of the page is one sunlit photograph of a hand holding a blank card, not a screenshot. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram. Neither file is a capture of the checkout, and this section does not use them as one.
-
-Searched, and none of these held a capture of the checkout, the receipt, Inspector, Log, API, or Grafana:
-
-- `C:\Users\HP EliteBook\.cursor\projects\e-IT-SPACES-AI-Projects-aidt-signet\assets\` — only generated files (`signet-architecture.jpg`, `signet-gateway-hero.jpg`, `signet-gateway.jpg`)
-- `C:\Users\HP EliteBook\.cursor\projects\e-IT-SPACES-AI-Projects-aidt-signet\agent-transcripts\` — the name `ISSUE_3.png` appears as text in a pasted note. No image file with that name is stored there
-- `E:\IT_SPACES\AI\Projects\aidt\signet\docs\` — `signet-gateway.jpg` and `signet-architecture.jpg` only
-- Names matching `ISSUE`, `screenshot`, `screen`, or `capture` under `E:\IT_SPACES\AI\Projects\aidt\signet` — no app capture
-- Filename `ISSUE_3.png` under `C:\Users\HP EliteBook\Downloads`, `Desktop`, `Pictures`, and `E:\IT_SPACES\AI` — no file by that name was found before this page was written
-
-The labels below are the ones in [`preview/index.html`](preview/index.html). The running page is http://127.0.0.1:8001/ and https://signet-3oz8.onrender.com.
+The labels below are the ones in [`preview/index.html`](preview/index.html). The same page is http://127.0.0.1:8001/ and https://signet-3oz8.onrender.com. The picture at the top of this README is a campaign still. [`docs/signet-architecture.jpg`](docs/signet-architecture.jpg) is the architecture diagram.
 
 ### Checkout
 
@@ -394,9 +384,11 @@ The tabs are Inspector, Log, API, and Grafana. Payment leaves Ops and returns to
 
 UI note: [`docs/packets/02-ui-prototyping.md`](docs/packets/02-ui-prototyping.md).
 
-### Monitoring
+### Grafana tab and Grafana server
 
-Grafana is local only.
+The tab named Grafana is part of the payment page on the local app and on Render. It requests `GET /ops/board` on that same host and draws Requests, HTTP error rate, Average latency, Request rate by status, Latency P95 and P99, and Audit log. On https://signet-3oz8.onrender.com those figures are the Render app's own counts for the last 15 minutes. The tab does not call this PC.
+
+The Grafana server is a Compose service on this PC. Open http://127.0.0.1:3001 after Compose is up. Inside the container, Grafana listens on port 3000. Compose publishes that as host port **3001**. Port 3000 on this PC is not Signet's Grafana.
 
 | Board | URL |
 |-------|-----|
@@ -405,13 +397,11 @@ Grafana is local only.
 
 Panels on the Signet board: request count, HTTP error rate, average latency, request rate by status, P95 and P99, and the payment and decline log with trace ids. Success is green. An HTTP decline is red. The same log line is in local Loki. The card number is not an attribute.
 
-No screenshot file of those boards is stored in this repo. Open the URLs above after Compose is up. They are not on https://signet-3oz8.onrender.com.
-
-A user-impact rule is provisioned for local Grafana only: [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). It watches HTTP 5xx on `signet_requests_total`. A normal decline is HTTP 200 from `POST /authorizations` and does not raise it. The running Grafana process loads that file when it next reads provisioning. This page does not claim the rule has fired.
+The user-impact rule is provisioned for that local Grafana server: [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). It watches HTTP 5xx on `signet_requests_total`. A normal decline is HTTP 200 from `POST /authorizations` and does not raise it.
 
 The on-call command is `python observability/oncall/responder.py --alert observability/oncall/sample-alert.json`. An empty file at `observability/oncall/shopper-degrade` makes `GET /` return HTTP 503. The command deletes that file and requests http://127.0.0.1:8001/ again. It does not restart Docker. There is no pager and no rotation. See [`observability/oncall/responder.md`](observability/oncall/responder.md). It stays on this PC. It does not POST `/plates` and it does not start a production deploy.
 
-Gate note: [`docs/packets/09-observability.md`](docs/packets/09-observability.md). The security review memo still says alert rules were not added. That memo was not rewritten when this rule file was added.
+Gate note: [`docs/packets/09-observability.md`](docs/packets/09-observability.md). [`docs/security-review.md`](docs/security-review.md) records an earlier check, before this alert file and the on-call responder.
 
 ### Docker Compose
 
@@ -421,13 +411,9 @@ The picture of that path is [`docs/signet-architecture.jpg`](docs/signet-archite
 
 ### Ops on the same window
 
-Ops opens in the same window. The tab labels are the ones in the table above. The Grafana tab reads `/ops/board` and draws that board in the page. It does not embed the Grafana process. Grafana itself stays at http://127.0.0.1:3001 on this PC.
+Ops opens in the same window. The tab labels are the ones in the table above. The Grafana tab reads `/ops/board` from the app that served the page and draws that board. It does not embed the Grafana server. Dashboards and alert rules stay at http://127.0.0.1:3001 on this PC.
 
 There is no Rule tab and no file upload on this screen.
-
-### Not a second public app
-
-There is no second hosted UI, no public Grafana, and no public agent endpoint. Peer review of the running product uses https://signet-3oz8.onrender.com. Metrics and the agent pack stay on the machine that runs Compose.
 
 [↑ Contents](#table-of-contents)
 
@@ -448,8 +434,8 @@ Course final-project rubric for this gateway. The score is what this repo can cl
 | 7 | **Containerization** | 2 | 2 | [`docker-compose.yaml`](docker-compose.yaml) starts the app and Postgres with the command in row 5. [`Dockerfile`](Dockerfile). |
 | 8 | **Deployment** | 2 | 2 | https://signet-3oz8.onrender.com. `main` auto-deploys development. Production is a manual Render dashboard deploy. Rollback is [Rollback](#rollback). This repo does not start that production deploy. |
 | 9 | **CI/CD** | 3 | 3 | [`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs unit and integration `pytest` on `main` with a Postgres 16 service at `postgres:5432`. Green run: https://github.com/zakard114/signet/actions/runs/40141537858. Development CD is the Render auto-deploy from `main`. Production is a manual Render dashboard deploy. |
-| 10 | **Observability** | 2 | 2 | [`app/telemetry.py`](app/telemetry.py) and [`observability/`](observability/). Metrics, traces, and the structured log share a trace id. The log line has no card number and no CVC. Grafana: http://127.0.0.1:3001. Not on Render. |
-| 11 | **Alerting on user impact** | 1 | 1 | [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml). Trigger: the 5-minute rate of HTTP 5xx on `signet_requests_total` stays above 0 for 5 minutes. A normal decline is HTTP 200 and does not raise it. Local Grafana only. This page does not claim the rule has fired. |
+| 10 | **Observability** | 2 | 2 | [`app/telemetry.py`](app/telemetry.py) and [`observability/`](observability/). The Ops tab uses `GET /ops/board` on the app, including on Render. Metrics, traces, and the structured log share a trace id when the local collector is set. The log line has no card number and no CVC. The Grafana server is http://127.0.0.1:3001 on this PC. |
+| 11 | **Alerting on user impact** | 1 | 1 | [`observability/grafana/provisioning/alerting/user-impact.yaml`](observability/grafana/provisioning/alerting/user-impact.yaml) on the local Grafana server. Trigger: the 5-minute rate of HTTP 5xx on `signet_requests_total` stays above 0 for 5 minutes. A normal decline is HTTP 200 and does not raise it. |
 | 12 | **On-call agent** | 2 | 2 | [`observability/oncall/responder.py`](observability/oncall/responder.py) read [`observability/oncall/sample-alert.json`](observability/oncall/sample-alert.json). With `observability/oncall/shopper-degrade` absent, `GET /` was HTTP 200. With that file present, `GET /` was HTTP 503. The responder deleted the file and the next `GET /` was HTTP 200. `GET /docs` stayed HTTP 200. Not on Render. No POST `/plates`. No `docker compose restart`. |
 
 ### Quick verification commands
@@ -488,7 +474,7 @@ This repo has no `render.yaml`. The service is a Render **web service** built fr
 uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001}
 ```
 
-5. Do not add Grafana, the OpenTelemetry collector, Prometheus, Loki, Tempo, or the agent pack to that service.
+5. Leave the Grafana server, the OpenTelemetry collector, Prometheus, Loki, Tempo, and the agent pack on this PC. The Render service is the payment web app and Render Postgres. Do not create Render services for those local pieces.
 6. Smoke the public URL at `/` after the deploy is live. `/docs` is the API UI on that same host.
 
 Deploy note: [`docs/packets/08-deployment.md`](docs/packets/08-deployment.md).
@@ -497,12 +483,11 @@ Deploy note: [`docs/packets/08-deployment.md`](docs/packets/08-deployment.md).
 
 | Piece | Where |
 |-------|--------|
-| Grafana http://127.0.0.1:3001 | Compose on this PC. Not a Render service |
+| In-app Grafana tab | The payment page, local and on Render. Data is `GET /ops/board` on that host |
+| Grafana server http://127.0.0.1:3001 | Compose on this PC. Host port 3001 maps to container port 3000 |
 | Prometheus, Loki, Tempo, collector | Compose on this PC |
-| Agent pack (`AGENTS.md`, `agent-hooks`, `custom-agent`, `mcp-server`) | This repo, this PC. Not deployed |
+| Agent pack (`AGENTS.md`, `agent-hooks`, `custom-agent`, `mcp-server`) | This repo, this PC. It calls the local app |
 | Postgres host port 5433 | Local Compose only. Render uses its own Postgres |
-
-There is no second public prototype and no hosted metrics site.
 
 ### Postgres
 
@@ -517,7 +502,7 @@ Local data is a bind mount on this machine. It is not committed. Restarting the 
 
 Keep the previous deploy. In the Render service, open **Events** or **Deploys**, choose the earlier successful deploy, and roll back. The previous image serves again. Do not delete that older deploy until the new one is confirmed.
 
-Rolling back the web service does not change Grafana, because Grafana was not deployed. It does not roll back the local Postgres volume.
+Rolling back the web service restores the previous payment image, including the in-app Grafana tab. It does not change the Grafana server or the Postgres volume on this PC.
 
 [↑ Contents](#table-of-contents)
 
@@ -525,7 +510,7 @@ Rolling back the web service does not change Grafana, because Grafana was not de
 
 ## Troubleshooting
 
-1. **The public site has no Grafana.** That is expected. Open http://127.0.0.1:3001 on the machine running Compose. Port **3000** is not this project's Grafana. Signet uses **3001**.
+1. **The public Grafana tab and the local Grafana server are different.** The tab on https://signet-3oz8.onrender.com draws `GET /ops/board` from the Render app. Dashboards, Explore, and the alert rule are the Grafana server at http://127.0.0.1:3001 on the machine running Compose. Port **3000** on that machine is not this server. Compose publishes container port 3000 as host port **3001**.
 2. **Port already in use.** This stack needs **8001** (app), **5433** (Postgres), and **3001** (Grafana). Stop the other process or the other Compose project that holds the port, then start again:
 
 ```powershell

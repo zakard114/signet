@@ -10,6 +10,6 @@ Not allowed:
 
 - POST `/plates`, or any other write to the decline plate
 - Put a full card number in a file, a log, or telemetry
-- Deploy Grafana or this pack to Render
+- Deploy the Grafana server or this pack to Render
 - Copy the Fault Plate pack
 - Use AWS

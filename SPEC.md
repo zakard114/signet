@@ -32,7 +32,7 @@ Ops is one button at the top right of the checkout. It is disabled while the pay
 - Inspector. A statement only when the latest transaction HTTP status is 200. Otherwise the statement is empty. HTTP 200 is green. Payment detail shows the recorded sentence, HTTP status, log field, and retry. After Payment detail ends, the amount ceiling sits at the bottom. The stored value is the institution `amount_limit`. The default is 500. This tab does not edit the decline plate or the institution sentence.
 - Log. `GET /logs` returns id, stop_step, sentence, http_status, log_field, retry, amount, and created_at from `authorization_log`. There is no card column.
 - API. Live OpenAPI routes. Local docs are `/docs`. The contract file is `openapi.yaml`.
-- Grafana. Request count, HTTP error rate, average latency, request rate by status, P95 and P99, and an audit log with trace ids. Success is green. An HTTP decline is red. The same log also goes to local Loki. Grafana is not deployed to the public Render service.
+- Grafana. The tab draws request count, HTTP error rate, average latency, request rate by status, P95 and P99, and an audit log with trace ids from `GET /ops/board` on the same app. That tab is on the local page and on the public page. Success is green. An HTTP decline is red. The Grafana server, with the same log in Loki, is http://127.0.0.1:3001 on this PC. It is not a Render service.
 
 ## Out of scope
 

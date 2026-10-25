@@ -1,6 +1,6 @@
 # Agent team
 
-These are the roles in this repository and the handoff between them. They run on this PC. They are not deployed to Render.
+These are the roles in this repository and the handoff between them. The checkout, the six steps, and the Ops tabs ship in the Render web app. The Grafana server and the on-call responder stay on this PC.
 
 ## Checkout and backend
 
@@ -12,7 +12,7 @@ Owns the Ops window in the same page. The tabs are Inspector, Log, API, and Graf
 
 ## Observability
 
-Owns `app/telemetry.py` and `observability/`. A request carries one trace id on the span, the metric, and the structured log line. The card number and the CVC are not telemetry attributes. Grafana is http://127.0.0.1:3001 on this PC. It is not a Render service.
+Owns `app/telemetry.py` and `observability/`. A request carries one trace id on the span, the metric, and the structured log line. The card number and the CVC are not telemetry attributes. The Ops Grafana tab reads `GET /ops/board` on the app. The Grafana server is http://127.0.0.1:3001 on this PC. It is not a Render service.
 
 ## On-call responder
 
