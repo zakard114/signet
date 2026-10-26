@@ -91,17 +91,34 @@
     .slip .note { color: var(--dim); line-height: 1.5; margin: 0 0 14px; }
     .slip .actions { margin-top: 64px; }
     @media (max-width: 860px) {
-      main { padding: 20px 14px 32px; place-items: start center; }
+      main { padding: 52px 14px 32px; place-items: start center; min-width: 0; }
       main.receipt-open { padding-left: 14px; padding-right: 14px; }
-      .desk { grid-template-columns: 1fr; }
+      .desk {
+        grid-template-columns: minmax(0, 1fr);
+        overflow: visible;
+        min-width: 0;
+        max-width: 100%;
+      }
+      .pay, .pay-bottom, .rail, .slip { min-width: 0; max-width: 100%; }
       .pay-bottom { margin-top: 36px; }
-      .actions { flex-wrap: wrap; }
-      .stage, .stage.open { width: min(980px, 100%); }
+      .actions { flex-wrap: wrap; max-width: 100%; }
+      .actions button { max-width: 100%; }
+      #view-receipt { margin-left: 0; }
+      .stage, .stage.open { width: 100%; max-width: 100%; min-width: 0; }
       .stage.open { flex-direction: column; }
-      .stage.open > .desk { flex: 1 1 auto; width: auto; }
       .stage > .desk, .stage:not(.open) > .desk { border-radius: 28px; }
-      .stage.open > .desk { border-radius: 28px 28px 0 0; }
-      .slip { flex: none; border-left: 1px solid var(--line); border-top: 0; border-radius: 0 0 28px 28px; }
+      .stage.open > .desk {
+        flex: 1 1 auto;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        border-radius: 28px 28px 0 0;
+      }
+      .slip { flex: none; width: 100%; border-left: 1px solid var(--line); border-top: 0; border-radius: 0 0 28px 28px; }
+      .card-row { grid-template-columns: minmax(0, 1fr); }
+      .card-field, .card-row input, input[type="text"] { min-width: 0; max-width: 100%; }
+      h1 { max-width: 100%; overflow-wrap: anywhere; }
+      button.ops-corner { top: 12px; right: 12px; }
     }
     .rail { padding: 36px 28px; border-right: 1px solid var(--line); }
     .mark {
@@ -598,16 +615,31 @@
       .pay { padding: 26px 20px 22px; }
       h1 { font-size: 52px; }
       .ops, .ops-stage, .ops-stage.open {
-        width: min(980px, 100%);
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         max-height: none;
       }
+      .ops { overflow: visible; }
+      .ops-head { flex-wrap: wrap; max-width: 100%; min-width: 0; }
+      .ops-head .tabs, #close-ops { min-width: 0; max-width: 100%; }
+      .ops-head .tabs { flex: 1 1 100%; }
+      .ops-body { padding-right: 0; max-width: 100%; min-width: 0; }
       .ops-stage.open { flex-direction: column; }
       .ops-stage.open > .ops {
         flex: 1 1 auto;
-        width: auto;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         border-radius: 28px 28px 0 0;
       }
+      .audit { max-width: 100%; }
+      .audit-table { min-width: 0; width: 100%; table-layout: fixed; }
+      .audit-table th, .audit-table td { white-space: normal; overflow-wrap: anywhere; }
       .rule-slip {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         border-left: 1px solid var(--line);
         border-top: 0;
         border-radius: 0 0 28px 28px;
